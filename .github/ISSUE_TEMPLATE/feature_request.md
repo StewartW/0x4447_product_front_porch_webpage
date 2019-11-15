@@ -7,10 +7,10 @@ assignees: davidgatti
 
 ---
 
-# What is missing
+# My Problem
 
-TELL_US_WHAT_IS_MISSING
+TELL_US_ALL_ABOUT_IT
 
-# Benefit of the new feature
+# Solution
 
-TELL_US_ABOUT_THE_BENEFITS_OF_THE_NEW_FEATURE
+TELL_US_HOW_WOULD_YOU_LIKE_US_TO_SOLVE_IT

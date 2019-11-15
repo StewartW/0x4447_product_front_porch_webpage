@@ -1,0 +1,17 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - npm install
+      - apt-get update
+      - apt-get install imagemagick -y
+  build:
+    commands:
+      - echo "Building the site using Avocado."
+      - npm run build
+      - echo "Converting all JPGs in to progressive JPGs."
+      - find ./_output/assets/img -iname \*.jpg -exec convert {} -interlace plane {} \;
+  post_build:
+    commands:
+      - ./node_modules/.bin/potato -s _output -u -b $S3_BUCKET
