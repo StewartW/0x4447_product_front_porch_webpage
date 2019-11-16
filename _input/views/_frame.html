@@ -20,17 +20,17 @@
 		<meta name="msapplication-config" content="./assets/favicons/browserconfig.xml">
 		<meta name="theme-color" content="#ffffff">
 
-		<meta property="og:image" content="https://start.0x4447.com/assets/img/{{ folder }}/og.jpg">
+		<meta property="og:image" content="https://frontporch.0x4447.com/assets/img/{{ folder }}/og.jpg">
 		<meta property="og:image:width" content="1103">
 		<meta property="og:image:height" content="577">
-		<meta property="og:url" content="https://start.0x4447.com/{{ folder }}">
+		<meta property="og:url" content="https://frontporch.0x4447.com/{{ folder }}">
 		<meta property="og:type" content="website">
 		<meta property="og:title" content="{{ title }}">
 		<meta property="og:description" content="{{ description }}">
 
 		<meta name="twitter:card" content="summary_large_image">
 		<meta name="twitter:creator" content="@dawidgatti">
-		<meta name="twitter:image" content="https://start.0x4447.com/assets/img/{{ folder }}/og.jpg">
+		<meta name="twitter:image" content="https://frontporch.0x4447.com/assets/img/{{ folder }}/og.jpg">
 		<meta name="twitter:title" content="{{ title }}">
 		<meta name="twitter:description" content="{{ description }}">
 
@@ -41,6 +41,28 @@
 
 		<link rel="stylesheet" href="./assets/css/bootstrap-v4.0.0.min.css">
 		<link rel="stylesheet" href="./assets/css/style.css">
+
+        <script>
+
+        //
+        //  Get AWS credentials.
+        //
+        AWS.config.update({
+            region: '{{AWS_REGION}}',
+            credentials: new AWS.CognitoIdentityCredentials({
+                IdentityPoolId: '{{COGNITO_IDENTITY_POOL_ID}}'
+            })
+        });
+
+        //
+        //  Initialize S3
+        //
+        let s3 = new AWS.S3({
+            apiVersion: '2006-03-01'
+        });
+
+        </script>
+
 	</head>
 
 	<body>
@@ -57,8 +79,7 @@
 
 						<hr class="footer-divider">
 
-						<p id="copy">Est.2016, Copr.<a href="/">0x4447</a>™ LLC.</p>
-						<p id="commit_id"><a class="text-muted" target="_blank" href="https://github.com/0x4447-office/start.0x4447.com/commit/14b3553ba12fc2353ace3091ae73e6e04909cb9c">14b3553</a></p>
+						<p id="copy">Est.{{YEAR_ESTABLISHED}}, Copr.<a href="/">{{COMPANY_NAME}}</a></p>
 
 					</div>
 

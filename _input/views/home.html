@@ -1,3 +1,87 @@
-<ul>
-	<li><a href="https://0x4447.com">Home</a></li>
-</ul>
+<div class="custom-file">
+    <input id="profile_photo" type="file" class="custom-file-input" accept="image/png,image/jpeg" required>
+    <label class="custom-file-label" for="validatedCustomFile">Choose file...</label>
+</div>
+
+<hr>
+
+<button id="upload" class="btn btn-lg btn-primary btn-block d-none" type="submit">Save</button>
+
+<script>
+
+let file_reference = '';
+
+//
+//  React to the input file field, and save the file reference.
+//
+$("input:file").change(function() {
+
+    //
+    //  1.  Allow us to read files from the users disk
+    //
+    let reader = new FileReader();
+
+    //
+    //  2.  Get the selected image from file unloader and set it to cropper
+    //      to crop it
+    //
+    reader.onload = function(file) {
+
+        file_reference = file.target.result;
+
+        console.log("Reference saved.");
+
+    }
+
+    //
+    //  3.  Attach the selected file to the FileReader object which will
+    //      subsequently call .onload().
+    //
+    reader.readAsDataURL(this.files[0]);
+
+});
+
+//
+//  React when the user wants to upload the file.
+//
+$("#upload").on('click', function(event) {
+
+    console.info('Uploading');
+
+    //
+    //  2.  Prepare the object to be sent
+    //
+    let request = s3.putObject({
+        Bucket: '{{S3_FRONT_PORCH}}',
+        Key: "sdsdsd.png",
+        Body: file_reference
+    });
+
+    //
+    //  3.  Add a listener to react every time there is a progress
+    //      update so we know how much of the file was sent.
+    //
+    request.on('httpUploadProgress', function(progress) {
+        console.info(progress.loaded + " of " + progress.total + " bytes");
+        console.info(Math.floor((progress.total - progress.loaded) / progress.total * 100));
+    });
+
+    //
+    //  x.  React on errors.
+    //
+    request.on('error', function(error) {
+        console.error(error);
+    });
+
+    //
+    //  3.  Send the object.
+    //
+    request.send(function(response) {
+
+        console.info('Done uploading.');
+
+    });
+
+});
+
+</script>
