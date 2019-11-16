@@ -6,6 +6,9 @@ phases:
       - npm install
       - apt-get update
       - apt-get install imagemagick -y
+  pre_build:
+    commands:
+      - 'echo "{\r\n\t\"S3_BUCKET_FRONT_PORCH_UPLOADS\": \"$S3_BUCKET_FRONT_PORCH_UPLOADS\",\r\n\t\"DISTRIBUTION_ID\": \"$DISTRIBUTION_ID\",\r\n\t\"YEAR_ESTABLISHED\": \"$YEAR_ESTABLISHED\",\r\n\t\"COMPANY_NAME\": \"$COMPANY_NAME\",\r\n\t\"COGNITO_IDENTITY_POOL_ID\": \"$COGNITO_IDENTITY_POOL_ID\"\r\n}" > env.json'
   build:
     commands:
       - echo "Building the site using Avocado."
@@ -14,4 +17,5 @@ phases:
       - find ./_output/assets/img -iname \*.jpg -exec convert {} -interlace plane {} \;
   post_build:
     commands:
-      - ./node_modules/.bin/potato -s _output -u -b $S3_BUCKET
+      - echo "Push to S3 and invalidate the cash."
+      - ./node_modules/.bin/potato -s _output -u -b $S3_BUCKET_FRONT_PORCH_SITE
