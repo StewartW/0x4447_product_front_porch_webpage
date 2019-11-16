@@ -153,7 +153,8 @@ function check_if_user_exists(container)
 
                 if(event.Records)
                 {
-                    console.log("Records: ", event.Records);
+                    console.log("Records: ", event.Records.Payload);
+                    console.log("Records: ", array_buffer_to_string(event.Records.Payload));
 
                     //
                     //  ->  Move to the next promise.

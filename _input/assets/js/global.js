@@ -37,7 +37,7 @@ function base64_to_blob(data)
 	//
 	//	Write the bytes of the string to a typed array
 	//
-	for(var i = 0; i < byte_string.length; i++)
+	for(let i = 0; i < byte_string.length; i++)
 	{
 		ia[i] = byte_string.charCodeAt(i);
 	}
@@ -67,4 +67,31 @@ function blob_to_base64(data)
 	//	->	Return the result
 	//
 	return btoa(str).replace(/.{76}(?=.)/g, '$&\n');
+}
+
+//
+//  COnvert an Array buffer to a String.
+//
+function array_buffer_to_string(data)
+{
+    return String.fromCharCode.apply(null, new Uint16Array(data));
+}
+
+//
+//  Convert a String to an Array Buffer.
+//
+function string_to_array_buffer(str)
+{
+    //
+    //  2 bytes for each char
+    //
+    let data = new ArrayBuffer(str.length * 2);
+    let dataView = new Uint16Array(data);
+
+    for(let i = 0, strLen = str.length; i < strLen; i++)
+    {
+        dataView[i] = str.charCodeAt(i);
+    }
+
+    return data;
 }
