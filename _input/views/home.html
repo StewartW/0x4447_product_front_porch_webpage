@@ -153,7 +153,7 @@ function check_if_user_exists(container)
 
                 if(event.Records)
                 {
-                    console.log(event.Records);
+                    console.log("Records: ", event.Records);
 
                     //
                     //  ->  Move to the next promise.
@@ -163,22 +163,22 @@ function check_if_user_exists(container)
 
                 if(event.Stats)
                 {
-                    console.log(event.Stats);
+                    console.log("Stats: ", event.Stats);
                 }
 
                 if(event.Progress)
                 {
-                    console.log(event.Progress);
+                    console.log("Progress: ", event.Progress);
                 }
 
                 if(event.Cont)
                 {
-                    console.log(event.Cont);
+                    console.log("Count: ", event.Cont);
                 }
 
                 if(event.End)
                 {
-                    console.log(event.End);
+                    console.log("End: ", event.End);
                 }
 
             })
