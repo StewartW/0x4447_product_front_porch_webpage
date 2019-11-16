@@ -192,7 +192,7 @@ function check_if_user_exists(container)
 
                     let nodelimiter_result = raw_result.split(',')[0];
 
-                    let result = JSON.stringify(nodelimiter_result)
+                    let result = JSON.parse(nodelimiter_result)
 
                     console.log("Records: ", result);
 
