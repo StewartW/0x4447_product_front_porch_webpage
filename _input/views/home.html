@@ -285,7 +285,7 @@ function upload_object(container)
 
             bits = progress.loaded * 8;
 
-            speed_bps = (bits / duration) / 8;
+            speed_bps = Math.round((bits / duration) / 8);
 
             //
             //  Update the UI.
