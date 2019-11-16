@@ -77,65 +77,100 @@ $("#upload").on('click', function(event) {
     console.info('Uploading process starting.');
 
     //
-    //  1.  Create the path for the S3 object.
     //
-    let key = $("#email").val() + "/" + file_name;
-
     //
-    //  2.  Prepare the object to be sent
-    //
-    let request = s3.putObject({
-        Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}',
-        Key: key,
-        Body: file_reference
-    });
+    let container = {}
 
     //
-    //  3.  Add a listener to react every time there is a progress
-    //      update so we know how much of the file was sent.
     //
-    request.on('httpUploadProgress', function(progress) {
-
-        //
-        //  Calculate the percentage by making sure that
-        //
-        //      - the value is from 0 to 100, and not the other way around.
-        //      - the result is a positive number.
-        //
-        let raw_percentage = (((progress.total - progress.loaded) / progress.total * 100) - 100) * -1
-
-        //
-        //  Convert the double in to an integer.
-        //
-        let percentage = Math.floor(raw_percentage)
-
-        //
-        //  Update the UI.
-        //
-        ui_data_sent.text(progress.loaded);
-        ui_file_size.text(progress.total);
-        ui_percentage.text(percentage);
-
-    });
-
     //
-    //  x.  React on errors.
-    //
-    request.on('error', function(error) {
+    upload_object(container)
+        .then(function(container) {
 
-        console.error(error);
+            console.info('Uploading process finished.');
 
-    });
+        }).catch(function(error) {
 
-    //
-    //  3.  Send the object.
-    //
-    request.send(function(response) {
+            console.error(error);
 
-        console.info('Uploading process finished.');
+        })
 
-    });
 
 });
+
+//
+//
+//
+function upload_object(container)
+{
+    return new Promise(function(resolve, reject) {
+
+        //
+        //  1.  Create the path for the S3 object.
+        //
+        let key = $("#email").val() + "/" + file_name;
+
+        //
+        //  2.  Prepare the object to be sent
+        //
+        let request = s3.putObject({
+            Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}',
+            Key: key,
+            Body: file_reference
+        });
+
+        //
+        //  3.  Add a listener to react every time there is a progress
+        //      update so we know how much of the file was sent.
+        //
+        request.on('httpUploadProgress', function(progress) {
+
+            //
+            //  Calculate the percentage by making sure that
+            //
+            //      - the value is from 0 to 100, and not the other way around.
+            //      - the result is a positive number.
+            //
+            let raw_percentage = (((progress.total - progress.loaded) / progress.total * 100) - 100) * -1
+
+            //
+            //  Convert the double in to an integer.
+            //
+            let percentage = Math.floor(raw_percentage)
+
+            //
+            //  Update the UI.
+            //
+            ui_data_sent.text(progress.loaded);
+            ui_file_size.text(progress.total);
+            ui_percentage.text(percentage);
+
+        });
+
+        //
+        //  x.  React on errors.
+        //
+        request.on('error', function(error) {
+
+            console.error(error);
+
+            return reject(error);
+
+        });
+
+        //
+        //  3.  Send the object.
+        //
+        request.send(function(response) {
+
+            //
+            //  ->  Move to the next promise.
+            //
+            return resolve(container);
+
+        });
+
+    })
+}
 
 </script>
