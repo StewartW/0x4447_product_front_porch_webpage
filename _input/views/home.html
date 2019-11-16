@@ -79,13 +79,20 @@ $("#upload").on('click', function(event) {
     //
     //
     //
-    let container = {}
+    let container = {
+        email: email,
+        name: name
+    }
 
     //
     //
     //
-    check_if_user_exists(container)
+    prepare_the_data(container)
         .then(function(container) {
+
+            return check_if_user_exists(container);
+
+        }).then(function(container) {
 
             return upload_object(container);
 
@@ -105,6 +112,34 @@ $("#upload").on('click', function(event) {
 //
 //  Query to see if the email provided exists in the file can be sent.
 //
+function prepare_the_data(container)
+{
+    return new Promise(function(resolve, reject) {
+
+        //
+        //  1.  Prepare the data.
+        //
+        let email = $("#email").val();
+        let name = email.split('@')[0];
+
+        //
+        //  2. Save the data for the next promise.
+        //
+        container.email = email;
+        container.name = name;
+
+        //
+        //  ->  Move to the next promise.
+        //
+        return resolve(container);
+
+
+    })
+}
+
+//
+//  Query to see if the email provided exists in the file can be sent.
+//
 function check_if_user_exists(container)
 {
     return new Promise(function(resolve, reject) {
@@ -115,7 +150,7 @@ function check_if_user_exists(container)
         let params = {
             Bucket: 'front-poerch-emails',
             Key: 'emails.json',
-            Expression: 'SELECT * FROM S3Object[*].david',
+            Expression: 'SELECT * FROM S3Object[*].' + container.name,
             ExpressionType: "SQL",
             InputSerialization: {
                 CompressionType: "NONE",
@@ -125,7 +160,7 @@ function check_if_user_exists(container)
             },
             OutputSerialization: {
                 JSON: {
-                    RecordDelimiter: ','
+                    RecordDelimiter: ''
                 }
             }
         };
@@ -153,8 +188,15 @@ function check_if_user_exists(container)
 
                 if(event.Records)
                 {
-                    console.log("Records: ", event.Records.Payload);
-                    console.log("Records: ", array_buffer_to_string(event.Records.Payload));
+                    let raw_result = array_buffer_to_string(event.Records.Payload);
+                    let result = JSON.stringify(raw_result)
+
+                    console.log("Records: ", result);
+
+                    if(!result['_1'])
+                    {
+                        return reject(new Error("Recipient does not exists."))
+                    }
 
                     //
                     //  ->  Move to the next promise.
@@ -201,7 +243,7 @@ function upload_object(container)
         //
         //  1.  Create the path for the S3 object.
         //
-        let key = $("#email").val() + "/" + file_name;
+        let key = container.email + "/" + file_name;
 
         //
         //  2.  Prepare the object to be sent
