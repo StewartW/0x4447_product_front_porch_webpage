@@ -145,12 +145,17 @@ function check_if_user_exists(container)
     return new Promise(function(resolve, reject) {
 
         //
+        //  1.  Crete the SQL query.
         //
+        let sql = 'SELECT * FROM S3Object[*].' + container.name;
+
+        //
+        //  1.  Prepare the S3 query.
         //
         let params = {
             Bucket: 'front-poerch-emails',
             Key: 'emails.json',
-            Expression: 'SELECT * FROM S3Object[*].' + container.name,
+            Expression: sql,
             ExpressionType: "SQL",
             InputSerialization: {
                 CompressionType: "NONE",
@@ -166,10 +171,13 @@ function check_if_user_exists(container)
         };
 
         //
-        //
+        //  ->  Execute the query.
         //
         s3.selectObjectContent(params, function(error, data) {
 
+            //
+            //  1.  Check for internal Errors.
+            //
             if(error)
             {
                 console.info(params);
@@ -177,25 +185,34 @@ function check_if_user_exists(container)
             }
 
             //
+            //  2.  Loop over the query result.
             //
-            //
-            var events = data.Payload;
+            data.Payload.forEach(function(event) {
 
-            //
-            //
-            //
-            events.forEach(function(event) {
-
+                //
+                //  1.  Only react to Records results.
+                //
                 if(event.Records)
                 {
+                    //
+                    //  1.  Convert the buffer in to a string.
+                    //
                     let raw_result = array_buffer_to_string(event.Records.Payload);
 
+                    //
+                    //  2.  Remove the delimiter that AWS enforces on us.
+                    //
                     let nodelimiter_result = raw_result.split(',')[0];
 
+                    //
+                    //  3.  Convert JSON in to JS
+                    //
                     let result = JSON.parse(nodelimiter_result)
 
-                    console.log("Records: ", result);
-
+                    //
+                    //  4.  If nothing came back from the query we don't
+                    //      allow the upload process.
+                    //
                     if(!result['_1'])
                     {
                         return reject(new Error("Recipient does not exists."))
@@ -207,31 +224,9 @@ function check_if_user_exists(container)
                     return resolve(container);
                 }
 
-                if(event.Stats)
-                {
-                    console.log("Stats: ", event.Stats);
-                }
-
-                if(event.Progress)
-                {
-                    console.log("Progress: ", event.Progress);
-                }
-
-                if(event.Cont)
-                {
-                    console.log("Count: ", event.Cont);
-                }
-
-                if(event.End)
-                {
-                    console.log("End: ", event.End);
-                }
-
             })
 
         });
-
-
 
     })
 }
