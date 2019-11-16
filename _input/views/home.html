@@ -22,7 +22,7 @@
 //  Variables used by S3.
 //
 let file_name = '';
-let file_reference = '';
+let file_blob = '';
 
 //
 //  Grab the UI elements used to show the user the progress of the upload.
@@ -50,7 +50,7 @@ $("input:file").change(function(data) {
         //
         //  1.  Save the B64 file blob.
         //
-        file_reference = file.target.result;
+        file_blob = base64_to_blob(file.target.result);
 
         console.log("Reference saved.");
 
@@ -116,7 +116,7 @@ function upload_object(container)
         let request = s3.putObject({
             Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}',
             Key: key,
-            Body: file_reference
+            Body: file_blob
         });
 
         //
