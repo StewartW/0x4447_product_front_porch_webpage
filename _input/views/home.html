@@ -78,16 +78,22 @@ $("#upload").on('click', function(event) {
     //
     request.on('httpUploadProgress', function(progress) {
 
-
-        console.info(progress.loaded + " of " + progress.total + " bytes");
+        //
+        //  Calculate the percentage by making sure that
+        //
+        //      - the value is from 0 to 100, and not the other way around.
+        //      - the result is a positive number.
+        //
+        let raw_percentage = (((progress.total - progress.loaded) / progress.total * 100) - 100) * -1
 
         //
-        //  Calculate the percentage.
+        //  Convert the double in to an integer.
         //
-        let percentage = (((progress.total - progress.loaded) / progress.total * 100) - 100) * -1
+        let percentage = Math.floor(raw_percentage)
 
-        console.info(Math.floor(percentage));
-
+        //
+        //  Update the UI.
+        //
         ui_data_sent.text(progress.loaded);
         ui_file_size.text(progress.total);
         ui_percentage.text(percentage);
