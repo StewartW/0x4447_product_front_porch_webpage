@@ -8,7 +8,7 @@ phases:
       - apt-get install imagemagick -y
   pre_build:
     commands:
-      - 'echo "{\r\n\t\"S3_BUCKET_FRONT_PORCH_UPLOADS\": \"$S3_BUCKET_FRONT_PORCH_UPLOADS\",\r\n\t\"DISTRIBUTION_ID\": \"$DISTRIBUTION_ID\",\r\n\t\"YEAR_ESTABLISHED\": \"$YEAR_ESTABLISHED\",\r\n\t\"COMPANY_NAME\": \"$COMPANY_NAME\",\r\n\t\"AWS_REGION\": \"$AWS_REGION\",\r\n\t\"COGNITO_IDENTITY_POOL_ID\": \"$COGNITO_IDENTITY_POOL_ID\"\r\n}" > env.json'
+      - 'echo "{ \"S3_BUCKET_FRONT_PORCH_DATABASE\": \"$S3_BUCKET_FRONT_PORCH_DATABASE\", \"S3_BUCKET_FRONT_PORCH_UPLOADS\": \"$S3_BUCKET_FRONT_PORCH_UPLOADS\", \"DISTRIBUTION_ID\": \"$DISTRIBUTION_ID\", \"YEAR_ESTABLISHED\": \"$YEAR_ESTABLISHED\", \"COMPANY_NAME\": \"$COMPANY_NAME\", \"AWS_REGION\": \"$AWS_REGION\", \"COGNITO_IDENTITY_POOL_ID\": \"$COGNITO_IDENTITY_POOL_ID\"\r\n}" > env.json'
   build:
     commands:
       - echo "Building the site using Avocado."

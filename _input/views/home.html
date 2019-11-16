@@ -153,7 +153,7 @@ function check_if_user_exists(container)
         //  1.  Prepare the S3 query.
         //
         let params = {
-            Bucket: 'front-poerch-emails',
+            Bucket: '{{S3_BUCKET_FRONT_PORCH_DATABASE}}',
             Key: 'emails.json',
             Expression: sql,
             ExpressionType: "SQL",
