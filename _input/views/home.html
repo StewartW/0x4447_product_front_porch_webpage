@@ -9,9 +9,9 @@
 
 <script>
 
-let file_reference = '';
-let file_size = 0;
 let file_name = '';
+let file_size = 0;
+let file_reference = '';
 
 //
 //  React to the input file field, and save the file reference.
@@ -31,9 +31,10 @@ $("input:file").change(function(data) {
     //
     reader.onload = function(file) {
 
+        //
+        //  1.  Save the B64 file blob.
+        //
         file_reference = file.target.result;
-
-        file_size = file.total
 
         console.log("Reference saved.");
 
@@ -48,7 +49,8 @@ $("input:file").change(function(data) {
     //
     //  4.  Save the file name.
     //
-    file_name = this.value.split(/(\\|\/)/g).pop();
+    file_name = data.target.files[0].name;
+    file_size = data.target.files[0].size;
 
 });
 
