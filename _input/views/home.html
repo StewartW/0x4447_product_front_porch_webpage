@@ -52,7 +52,7 @@ $("#upload").on('click', function(event) {
     //  2.  Prepare the object to be sent
     //
     let request = s3.putObject({
-        Bucket: '{{S3_FRONT_PORCH}}',
+        Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}',
         Key: "sdsdsd.png",
         Body: file_reference
     });
