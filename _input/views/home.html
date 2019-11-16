@@ -12,6 +12,8 @@
 
 <p>Sent <span id="data_sent"></span> out of <span id="file_size"></span>, which is <span id="percentage"></span>%</p>
 
+<p>Speed: <span id="speed"></span> Bps</p>
+
 <hr>
 
 <button id="upload" class="btn btn-lg btn-primary btn-block" type="submit">Save</button>
@@ -30,6 +32,7 @@ let file_blob = '';
 let ui_data_sent = $("#data_sent");
 let ui_file_size = $("#file_size");
 let ui_percentage = $("#percentage");
+let ui_speed = $("#speed");
 
 //
 //  React to the input file field, and save the file reference.
@@ -238,6 +241,8 @@ function upload_object(container)
 {
     return new Promise(function(resolve, reject) {
 
+        let start_time = (new Date()).getTime();
+
         //
         //  1.  Create the path for the S3 object.
         //
@@ -272,11 +277,23 @@ function upload_object(container)
             let percentage = Math.floor(raw_percentage)
 
             //
+            //
+            //
+            end_time = (new Date()).getTime();
+
+            let duration = (end_time - startTime) / 1000
+
+            bits = progress.loaded * 8;
+
+            speed_bps = (bits / duration) / 8;
+
+            //
             //  Update the UI.
             //
             ui_data_sent.text(progress.loaded);
             ui_file_size.text(progress.total);
             ui_percentage.text(percentage);
+            ui_speed.text(speed_bps);
 
         });
 
