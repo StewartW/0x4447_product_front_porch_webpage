@@ -14,7 +14,7 @@ phases:
       - echo "Building the site using Avocado."
       - npm run build
       - echo "Converting all JPGs in to progressive JPGs."
-      - if [ -f "./_output/assets/img" ]; then find ./_output/assets/img -iname \*.jpg -exec convert {} -interlace plane {} \; fi
+      - if [ -f "./_output/assets/img" ]; then find ./_output/assets/img -iname \*.jpg -exec convert {} -interlace plane {} fi
   post_build:
     commands:
       - echo "Push to S3 and invalidate the cash."
