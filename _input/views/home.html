@@ -73,8 +73,16 @@ $("#upload").on('click', function(event) {
     //      update so we know how much of the file was sent.
     //
     request.on('httpUploadProgress', function(progress) {
+
         console.info(progress.loaded + " of " + progress.total + " bytes");
-        console.info(Math.floor((progress.total - progress.loaded) / progress.total * 100));
+
+        //
+        //  Calculate the percentage.
+        //
+        let percentage = (((progress.total - progress.loaded) / progress.total * 100) - 100) * -1
+
+        console.info(Math.floor(percentage);
+
     });
 
     //
