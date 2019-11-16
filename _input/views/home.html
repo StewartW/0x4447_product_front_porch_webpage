@@ -23,7 +23,6 @@
 //
 let file_name = '';
 let file_reference = '';
-let email = $("#email").val();
 
 //
 //  Grab the UI elements used to show the user the progress of the upload.
@@ -80,7 +79,7 @@ $("#upload").on('click', function(event) {
     //
     //  1.  Create the path for the S3 object.
     //
-    let key = email + "/" + file_name;
+    let key = $("#email").val() + "/" + file_name;
 
     //
     //  2.  Prepare the object to be sent
