@@ -84,8 +84,12 @@ $("#upload").on('click', function(event) {
     //
     //
     //
-    upload_object(container)
+    check_if_user_exists(container)
         .then(function(container) {
+
+            return upload_object(container);
+
+        }).then(function(container) {
 
             console.info('Uploading process finished.');
 
@@ -97,6 +101,94 @@ $("#upload").on('click', function(event) {
 
 
 });
+
+//
+//  Query to see if the email provided exists in the file can be sent.
+//
+function check_if_user_exists(container)
+{
+    return new Promise(function(resolve, reject) {
+
+        //
+        //
+        //
+        let params = {
+            Bucket: 'front-poerch-emails',
+            Key: 'emails.json',
+            Expression: 'SELECT * FROM S3Object[*].david',
+            ExpressionType: "SQL",
+            InputSerialization: {
+                CompressionType: "NONE",
+                JSON: {
+                    Type: "DOCUMENT"
+                }
+            },
+            OutputSerialization: {
+                JSON: {
+                    RecordDelimiter: ','
+                }
+            }
+        };
+
+        //
+        //
+        //
+        s3.selectObjectContent(params, function(error, data) {
+
+            if(error)
+            {
+                console.info(params);
+                return reject(error);
+            }
+
+            //
+            //
+            //
+            var events = data.Payload;
+
+            //
+            //
+            //
+            events.forEach(function(event) {
+
+                if(event.Records)
+                {
+                    console.log(event.Records);
+
+                    //
+                    //  ->  Move to the next promise.
+                    //
+                    return resolve(container);
+                }
+
+                if(event.Stats)
+                {
+                    console.log(event.Stats);
+                }
+
+                if(event.Progress)
+                {
+                    console.log(event.Progress);
+                }
+
+                if(event.Cont)
+                {
+                    console.log(event.Cont);
+                }
+
+                if(event.End)
+                {
+                    console.log(event.End);
+                }
+
+            })
+
+        });
+
+
+
+    })
+}
 
 //
 //
