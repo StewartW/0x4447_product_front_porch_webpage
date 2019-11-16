@@ -1,18 +1,7 @@
 //
-//	Populate the form as is.
-//
-function populate_form(data)
-{
-	for(let key in data)
-	{
-		$('#' + key).val(data[key]);
-	}
-}
-
-//
 //	Convert base64/URLEncoded data in to an Array.
 //
-function base64_to_blob(data_uri)
+function base64_to_blob(data)
 {
 	//
 	//	Variables where decoded string will be stored.
@@ -22,23 +11,23 @@ function base64_to_blob(data_uri)
 	//
 	//	Check if it's base64 and decode it if so.
 	//
-	if(data_uri.split(',')[0].indexOf('base64') >= 0)
+	if(data.split(',')[0].indexOf('base64') >= 0)
 	{
-		byte_string = atob(data_uri.split(',')[1]);
+		byte_string = atob(data.split(',')[1]);
 	}
 
 	//
 	//	If it's not a base64 encoding, the unescape the string.
 	//
-	if(data_uri.split(',')[0].indexOf('base64') === 0)
+	if(data.split(',')[0].indexOf('base64') === 0)
 	{
-		byte_string = unescape(data_uri.split(',')[1]);
+		byte_string = unescape(data.split(',')[1]);
 	}
 
 	//
 	// Separate out the mime part from the string.
 	//
-	let mime_string = data_uri.split(',')[0].split(':')[1].split(';')[0];
+	let mime_string = data.split(',')[0].split(':')[1].split(';')[0];
 
 	//
 	//	Object represents chars corresponding bytes.
