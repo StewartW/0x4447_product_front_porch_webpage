@@ -12,7 +12,9 @@
 
 <p>Sent <span id="data_sent"></span> out of <span id="file_size"></span>, which is <span id="percentage"></span>%</p>
 
-<p>Speed: <span id="speed"></span> Bps</p>
+<p>Upload speed: <span id="speed"></span>/Bps</p>
+
+<p>Time left: <span id="time_left"></span>/s</p>
 
 <hr>
 
@@ -33,6 +35,7 @@ let ui_data_sent = $("#data_sent");
 let ui_file_size = $("#file_size");
 let ui_percentage = $("#percentage");
 let ui_speed = $("#speed");
+let ui_time_left = $("#time_left");
 
 //
 //  React to the input file field, and save the file reference.
@@ -287,6 +290,8 @@ function upload_object(container)
 
             speed_bps = Math.round((bits / duration) / 8);
 
+            let time_left = Math.round((progress.total - progress.loaded) / speed_bps);
+
             //
             //  Update the UI.
             //
@@ -294,6 +299,7 @@ function upload_object(container)
             ui_file_size.text(progress.total);
             ui_percentage.text(percentage);
             ui_speed.text(speed_bps);
+            ui_time_left.text(time_left);
 
         });
 
