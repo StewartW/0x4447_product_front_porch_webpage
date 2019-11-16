@@ -3,6 +3,8 @@
     <label class="custom-file-label" for="validatedCustomFile">Choose file...</label>
 </div>
 
+<p>Sent <span id="data_sent"></span> out of <span id="file_size"></span>, which is <span id="percentage"></span>%</p>
+
 <hr>
 
 <button id="upload" class="btn btn-lg btn-primary btn-block" type="submit">Save</button>
@@ -10,8 +12,11 @@
 <script>
 
 let file_name = '';
-let file_size = 0;
 let file_reference = '';
+
+let ui_data_sent = $("#data_sent");
+let ui_file_size = $("#file_size");
+let ui_percentage = $("#percentage");
 
 //
 //  React to the input file field, and save the file reference.
@@ -48,7 +53,6 @@ $("input:file").change(function(data) {
     //  4.  Save the file name.
     //
     file_name = data.target.files[0].name;
-    file_size = data.target.files[0].size;
 
 });
 
@@ -74,6 +78,7 @@ $("#upload").on('click', function(event) {
     //
     request.on('httpUploadProgress', function(progress) {
 
+
         console.info(progress.loaded + " of " + progress.total + " bytes");
 
         //
@@ -81,7 +86,11 @@ $("#upload").on('click', function(event) {
         //
         let percentage = (((progress.total - progress.loaded) / progress.total * 100) - 100) * -1
 
-        console.info(Math.floor(percentage);
+        console.info(Math.floor(percentage));
+
+        ui_data_sent.text(progress.loaded);
+        ui_file_size.text(progress.total);
+        ui_percentage.text(percentage);
 
     });
 
