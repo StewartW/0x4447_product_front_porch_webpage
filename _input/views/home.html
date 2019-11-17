@@ -62,7 +62,7 @@ $("input:file").change(function(data) {
         //
         file_blob = base64_to_blob(file.target.result);
 
-        console.log("Reference saved.");
+        console.log("File saved in to memory.");
 
     }
 
@@ -83,8 +83,6 @@ $("input:file").change(function(data) {
 //  React when the user wants to upload the file.
 //
 $("#upload").on('click', function(event) {
-
-    console.info('Uploading process starting.');
 
     //
     //  1.  All the data passed around the promise chain.
@@ -126,6 +124,8 @@ function prepare_the_data(container)
 {
     return new Promise(function(resolve, reject) {
 
+        console.info('prepare_the_data');
+
         //
         //  1.  Get the email entered in the input form.
         //
@@ -151,6 +151,8 @@ function prepare_the_data(container)
 function check_if_user_exists(container)
 {
     return new Promise(function(resolve, reject) {
+
+        console.info('check_if_user_exists');
 
         //
         //  1.  Crete the SQL query.
@@ -250,6 +252,8 @@ function check_if_user_exists(container)
 function upload_object(container)
 {
     return new Promise(function(resolve, reject) {
+
+        console.info('upload_object');
 
         //
         //  1.  Get the starting time stamp used to calculate the speed
