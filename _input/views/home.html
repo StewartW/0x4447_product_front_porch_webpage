@@ -88,8 +88,18 @@ $("#upload").on('click', function(event) {
     //  1.  All the data passed around the promise chain.
     //
     let container = {
+        //
+        //  We hold the email stripped of all the not cool chars.
+        //
         email_sanitized: '',
-        email: ''
+        //
+        //  The real email that we got from S3
+        //
+        email: '',
+        //
+        //  A random Nr used to make sure we have a unique file name.
+        //
+        random: Math.floor(Math.random() * Math.floor(10000));
     }
 
     //
@@ -264,7 +274,7 @@ function upload_object(container)
         //
         //  2.  Create the path for the S3 object.
         //
-        let key = container.email + "/" + file_name;
+        let key = container.email + "/" + container.random + '-' + file_name;
 
         //
         //  3.  Prepare the object to be sent
