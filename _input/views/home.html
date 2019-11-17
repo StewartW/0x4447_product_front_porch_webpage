@@ -1,13 +1,19 @@
 <div class="input-group mb-3">
+
     <div class="input-group-prepend">
         <span class="input-group-text" id="basic-addon1">@</span>
     </div>
+
     <input id="email" type="text" class="form-control" placeholder="Email" aria-label="Email" aria-describedby="basic-addon1">
+
 </div>
 
 <div class="custom-file">
-    <input id="profile_photo" type="file" class="custom-file-input" accept="image/png,image/jpeg" required>
+
+    <input id="profile_photo" type="file" class="custom-file-input" required>
+
     <label class="custom-file-label" for="validatedCustomFile">Choose file...</label>
+
 </div>
 
 <p>Sent <span id="data_sent"></span> out of <span id="file_size"></span>, which is <span id="percentage"></span>%</p>
@@ -15,8 +21,6 @@
 <p>Upload speed: <span id="speed"></span>/Bps</p>
 
 <p>Time left: <span id="time_left"></span>/s</p>
-
-<hr>
 
 <button id="upload" class="btn btn-lg btn-primary btn-block" type="submit">Save</button>
 
@@ -83,7 +87,7 @@ $("#upload").on('click', function(event) {
     console.info('Uploading process starting.');
 
     //
-    //
+    //  1.  All the data passed around the promise chain.
     //
     let container = {
         email: email,
@@ -91,7 +95,7 @@ $("#upload").on('click', function(event) {
     }
 
     //
-    //
+    //  ->  Start the promise.
     //
     prepare_the_data(container)
         .then(function(container) {
@@ -144,7 +148,7 @@ function prepare_the_data(container)
 }
 
 //
-//  Query to see if the email provided exists in the file can be sent.
+//  Query S3 to see if the email provided exists in the file can be sent.
 //
 function check_if_user_exists(container)
 {
@@ -238,21 +242,25 @@ function check_if_user_exists(container)
 }
 
 //
-//
+//  Get the selected file and upload it to S3.
 //
 function upload_object(container)
 {
     return new Promise(function(resolve, reject) {
 
-        let start_time = (new Date()).getTime();
+        //
+        //  1.  Get the starting time stamp used to calculate the speed
+        //      of the upload process.
+        //
+        let start_time = new Date().getTime();
 
         //
-        //  1.  Create the path for the S3 object.
+        //  2.  Create the path for the S3 object.
         //
         let key = container.email + "/" + file_name;
 
         //
-        //  2.  Prepare the object to be sent
+        //  3.  Prepare the object to be sent
         //
         let request = s3.putObject({
             Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}',
@@ -261,13 +269,13 @@ function upload_object(container)
         });
 
         //
-        //  3.  Add a listener to react every time there is a progress
+        //  4.  Add a listener to react every time there is a progress
         //      update so we know how much of the file was sent.
         //
         request.on('httpUploadProgress', function(progress) {
 
             //
-            //  Calculate the percentage by making sure that
+            //  1.  Calculate the percentage by making sure that
             //
             //      - the value is from 0 to 100, and not the other way around.
             //      - the result is a positive number.
@@ -275,21 +283,35 @@ function upload_object(container)
             let raw_percentage = (((progress.total - progress.loaded) / progress.total * 100) - 100) * -1
 
             //
-            //  Convert the double in to an integer.
+            //  2.  Convert the double in to an integer.
             //
             let percentage = Math.floor(raw_percentage)
 
             //
+            //  3.  Get the time stamp used to calculate the upload speed, so
+            //      with this we know how much time passed from the point
+            //      we started.
             //
-            //
-            end_time = (new Date()).getTime();
+            end_time = new Date().getTime();
 
+            //
+            //  4.  Calculate how much time passed in seconds.
+            //
             let duration = (end_time - start_time) / 1000
 
+            //
+            //  5.  Convert Bytes in to Bits.
+            //
             bits = progress.loaded * 8;
 
-            speed_bps = Math.round((bits / duration) / 8);
+            //
+            //  6.  Get the upload speed.
+            //
+            let speed_bps = Math.round((bits / duration) / 8);
 
+            //
+            //  7.  Calculate the time left till the upload is done.
+            //
             let time_left = Math.round((progress.total - progress.loaded) / speed_bps);
 
             //
@@ -304,7 +326,7 @@ function upload_object(container)
         });
 
         //
-        //  x.  React on errors.
+        //  5.  React on errors.
         //
         request.on('error', function(error) {
 
@@ -315,7 +337,7 @@ function upload_object(container)
         });
 
         //
-        //  3.  Send the object.
+        //  6.  Wait until the upload process is done.
         //
         request.send(function(response) {
 
