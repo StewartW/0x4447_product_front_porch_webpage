@@ -39,6 +39,7 @@
 
 		<script src="./assets/js/modules/jquery-v3.4.1.min.js"></script>
         <script src="./assets/js/modules/aws-sdk-s3-cognito_identity-2.461.0.min.js"></script>
+        <script src="./assets/js/modules/psl.min-v1.3.0.js"></script>
         <script src="./assets/js/global.js"></script>
 
 		<link rel="stylesheet" href="./assets/css/modules/bootstrap-v4.3.1.min.css">
@@ -63,6 +64,11 @@
             apiVersion: '2006-03-01'
         });
 
+        //
+        //  Parse the domain to extract URL data.
+        //
+        let parsed_url = psl.parse(window.location.href);
+
         </script>
 
 	</head>
@@ -85,7 +91,7 @@
 
 						<hr class="footer-divider">
 
-						<p id="copy">Est. {{YEAR_ESTABLISHED}}, Copr. <a href="/">{{COMPANY_NAME}}</a></p>
+						<p id="copy">Est. {{YEAR_ESTABLISHED}}, Copr. <a id="company_name" href="" target="_blank" >{{COMPANY_NAME}}</a></p>
 
 					</div>
 
@@ -96,6 +102,11 @@
 		</main>
 
 <script>
+
+    //
+    //  Replace the URL for the footer to be matching the domain we are on.
+    //
+    $('#company_name').attr("href", "https://" + parsed_url.domain);
 
 </script>
 
