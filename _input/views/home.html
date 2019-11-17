@@ -90,8 +90,8 @@ $("#upload").on('click', function(event) {
     //  1.  All the data passed around the promise chain.
     //
     let container = {
-        email: email,
-        name: name
+        email_sanitized: '',
+        email: ''
     }
 
     //
@@ -127,16 +127,14 @@ function prepare_the_data(container)
     return new Promise(function(resolve, reject) {
 
         //
-        //  1.  Prepare the data.
+        //  1.  Get the email entered in the input form.
         //
-        let email = $("#email").val();
-        let name = email.split('@')[0];
+        let email_raw = $("#email").val();
 
         //
-        //  2. Save the data for the next promise.
+        //  2. Sanitize the email for the S3 query.
         //
-        container.email = email;
-        container.name = name;
+        container.email_sanitized = email_raw.replace(/[^a-zA-Z0-9]/g, "_");
 
         //
         //  ->  Move to the next promise.
@@ -157,7 +155,7 @@ function check_if_user_exists(container)
         //
         //  1.  Crete the SQL query.
         //
-        let sql = 'SELECT * FROM S3Object[*].' + container.name;
+        let sql = 'SELECT * FROM S3Object[*].' + container.email_sanitized;
 
         //
         //  1.  Prepare the S3 query.
@@ -227,6 +225,11 @@ function check_if_user_exists(container)
                     {
                         return reject(new Error("Recipient does not exists."))
                     }
+
+                    //
+                    //  5.  Save the real email to be used in S3 Key path.
+                    //
+                    container.email = result['_1'];
 
                     //
                     //  ->  Move to the next promise.
