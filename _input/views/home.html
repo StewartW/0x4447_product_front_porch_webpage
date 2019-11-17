@@ -334,10 +334,10 @@ function upload_object(container)
             //
             //  Update the UI.
             //
-            ui_data_sent.text(progress.loaded);
-            ui_file_size.text(progress.total);
+            ui_data_sent.text(Number(progress.loaded).toLocaleString());
+            ui_file_size.text(Number(progress.total).toLocaleString());
             ui_percentage.text(percentage);
-            ui_speed.text(speed_bps);
+            ui_speed.text(Number(speed_bps).toLocaleString());
             ui_time_left.text(time_left);
 
         });
