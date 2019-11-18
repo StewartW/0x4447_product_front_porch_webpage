@@ -4,7 +4,17 @@
         <span class="input-group-text" id="basic-addon1">@</span>
     </div>
 
-    <input id="email" type="text" class="form-control" placeholder="Email" aria-label="Email" aria-describedby="basic-addon1">
+    <input id="email_from" type="text" class="form-control" placeholder="Email" aria-label="Email" aria-describedby="basic-addon1">
+
+</div>
+
+<div class="input-group mb-3">
+
+    <div class="input-group-prepend">
+        <span class="input-group-text" id="basic-addon1">@</span>
+    </div>
+
+    <input id="email_to" type="text" class="form-control" placeholder="Email" aria-label="Email" aria-describedby="basic-addon1">
 
 </div>
 
@@ -91,11 +101,15 @@ $("#upload").on('click', function(event) {
         //
         //  We hold the email stripped of all the not cool chars.
         //
-        email_sanitized: '',
+        email_to_sanitized: '',
         //
-        //  The real email that we got from S3
+        //  The email of who dropped the package.
         //
-        email: '',
+        email_from: $("#email_from").val(),
+        //
+        //  The email to whome the file is intended to.
+        //
+        email_to: '',
         //
         //  A random Nr used to make sure we have a unique file name.
         //
@@ -139,12 +153,12 @@ function prepare_the_data(container)
         //
         //  1.  Get the email entered in the input form.
         //
-        let email_raw = $("#email").val();
+        let email_raw = $("#email_to").val();
 
         //
         //  2. Sanitize the email for the S3 query.
         //
-        container.email_sanitized = email_raw.replace(/[^a-zA-Z0-9]/g, "_");
+        container.email_to_sanitized = email_raw.replace(/[^a-zA-Z0-9]/g, "_");
 
         //
         //  ->  Move to the next promise.
@@ -167,7 +181,7 @@ function check_if_user_exists(container)
         //
         //  1.  Crete the SQL query.
         //
-        let sql = 'SELECT * FROM S3Object[*].' + container.email_sanitized;
+        let sql = 'SELECT * FROM S3Object[*].' + container.email_to_sanitized;
 
         //
         //  1.  Prepare the S3 query.
@@ -241,7 +255,7 @@ function check_if_user_exists(container)
                     //
                     //  5.  Save the real email to be used in S3 Key path.
                     //
-                    container.email = result['_1'];
+                    container.email_to = result['_1'];
 
                     //
                     //  ->  Move to the next promise.
@@ -274,7 +288,13 @@ function upload_object(container)
         //
         //  2.  Create the path for the S3 object.
         //
-        let key = container.email + "/" + container.random + '-' + file_name;
+        let key = container.email_to
+                + "/"
+                + container.email_from
+                + "/"
+                + container.random
+                + '-'
+                + file_name;
 
         //
         //  3.  Prepare the object to be sent
