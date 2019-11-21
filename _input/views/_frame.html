@@ -76,31 +76,44 @@
 	<body>
 
 		<main role="main">
-
-            <img class="d-block mx-auto mb-4" src="./assets/img/logo.jpg" alt="" width="72" height="72">
-
-            <h2>Front Porch</h2>
-
-            <p class="lead">This is our company digital front porch, if you have a package to big to be sent using conventional means, you can upload it to use from this page. The file size limit is 5 GB.</p>
-
-			{{>body}}
-
-			<footer class="container text-center">
-
+			<div class="container top-gutter">
+				<div class="row justify-content-center">
+					<div class="col-12">
+						<img class="d-block mx-auto mb-4" src="./assets/img/logo.jpg" alt="" width="72" height="72">
+					</div>
+				</div>
+				<div class="row justify-content-center">
+					<div class="col-12 center">
+						<h2>Front Porch</h2>
+					</div>
+				</div>
+				<div class="row justify-content-center">
+					<div class="col-12 center">	
+						<p class="lead">This is our company digital front porch, if you have a package too big to be sent using conventional means, you can upload it to use from this page. The file size limit is 5 GB.</p>
+					</div>
+				</div>
 				<div class="row">
+					<div class="col-12">
+						{{>body}}
+					</div>
+				</div>
 
-					<div class="col">
+				<footer class="container text-center">
 
-						<hr class="footer-divider">
+					<div class="row">
 
-						<p id="copy">Est. {{YEAR_ESTABLISHED}}, Copr. <a id="company_name" href="" target="_blank" >{{COMPANY_NAME}}</a></p>
+						<div class="col">
+
+							<hr class="footer-divider">
+
+							<p id="copy">Est. {{YEAR_ESTABLISHED}}, Copr. <a id="company_name" href="" target="_blank" >{{COMPANY_NAME}}</a></p>
+
+						</div>
 
 					</div>
 
-				</div>
-
-			</footer>
-
+				</footer>
+			</div>
 		</main>
 
 <script>

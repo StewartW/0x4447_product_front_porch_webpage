@@ -1,38 +1,44 @@
-<div class="input-group mb-3">
+<form class="needs-validation" novalidate>
+    <div class="input-group mb-3">
 
-    <div class="input-group-prepend">
-        <span class="input-group-text" id="basic-addon1">@</span>
+        <div class="input-group-prepend">
+            <span class="input-group-text" id="basic-addon1">@</span>
+        </div>
+
+        <input id="email_from" type="email" class="form-control" placeholder="From Email" aria-label="Email" aria-describedby="basic-addon1" required autofocus>
+        <div class="invalid-feedback">
+            Please provide a valid email
+        </div>
     </div>
 
-    <input id="email_from" type="email" class="form-control" placeholder="Email" aria-label="Email" aria-describedby="basic-addon1" required="" autofocus="">
+    <div class="input-group mb-3">
 
-</div>
+        <div class="input-group-prepend">
+            <span class="input-group-text" id="basic-addon1">@</span>
+        </div>
 
-<div class="input-group mb-3">
-
-    <div class="input-group-prepend">
-        <span class="input-group-text" id="basic-addon1">@</span>
+        <input id="email_to" type="email" class="form-control" placeholder="To Email" aria-label="Email" aria-describedby="basic-addon1" required>
+        <div class="invalid-feedback">
+            Please provide a valid email
+        </div>
     </div>
 
-    <input id="email_to" type="email" class="form-control" placeholder="Email" aria-label="Email" aria-describedby="basic-addon1" required="">
+    <div class="custom-file">
 
-</div>
+        <input id="profile_photo" type="file" class="custom-file-input" required>
 
-<div class="custom-file">
+        <label class="custom-file-label" for="validatedCustomFile">Choose file...</label>
 
-    <input id="profile_photo" type="file" class="custom-file-input" required="">
+    </div>
 
-    <label class="custom-file-label" for="validatedCustomFile">Choose file...</label>
+    <p>Sent <span id="data_sent"></span> out of <span id="file_size"></span>, which is <span id="percentage"></span>%</p>
 
-</div>
+    <p>Upload speed: <span id="speed"></span>/Bps</p>
 
-<p>Sent <span id="data_sent"></span> out of <span id="file_size"></span>, which is <span id="percentage"></span>%</p>
+    <p>Time left: <span id="time_left"></span>/s</p>
 
-<p>Upload speed: <span id="speed"></span>/Bps</p>
-
-<p>Time left: <span id="time_left"></span>/s</p>
-
-<button id="upload" class="btn btn-lg btn-primary btn-block" type="submit">Upload</button>
+    <button id="upload" class="btn btn-lg btn-primary btn-block" type="submit">Upload</button>
+</form>
 
 <script>
 
@@ -92,7 +98,8 @@ $("input:file").change(function(data) {
 //
 //  React when the user wants to upload the file.
 //
-$("#upload").on('click', function(event) {
+function uploadFile() {
+console.log('upload fired');
 
     //
     //  1.  All the data passed around the promise chain.
@@ -138,8 +145,27 @@ $("#upload").on('click', function(event) {
 
         })
 
+};
 
-});
+(function() {
+  'use strict';
+  window.addEventListener('load', function() {
+    // Fetch all the forms we want to apply custom Bootstrap validation styles to
+    var forms = document.getElementsByClassName('needs-validation');
+    // Loop over them and prevent submission
+    var validation = Array.prototype.filter.call(forms, function(form) {
+      form.addEventListener('submit', function(event) {
+        if (form.checkValidity() === false) {
+          event.preventDefault();
+          event.stopPropagation();
+        } else {
+            uploadFile();
+        }
+        form.classList.add('was-validated');
+      }, false);
+    });
+  }, false);
+})();
 
 //
 //  Query to see if the email provided exists in the file can be sent.
