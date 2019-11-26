@@ -1,4 +1,4 @@
-<form class="needs-validation" novalidate>
+<form class="needs-validation">
     <div class="input-group mb-3">
 
         <div class="input-group-prepend">
@@ -37,7 +37,10 @@
 
     <p>Time left: <span id="time_left"></span>/s</p>
 
-    <button id="upload" class="btn btn-lg btn-primary btn-block" type="submit">Upload</button>
+    <button id="upload" class="btn btn-lg btn-primary btn-block" type="submit">
+        <span id="upload-text">Upload</span>
+        <span id="upload-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
+    </button>
 </form>
 
 <script>
@@ -98,8 +101,10 @@ $("input:file").change(function(data) {
 //
 //  React when the user wants to upload the file.
 //
-function uploadFile() {
-console.log('upload fired');
+$("#upload").on('click', function(event) {
+    $("#upload-spinner").show();
+    $("#upload-text").text("Uploading");
+    $("#upload").attr("disabled", "disabled");
 
     //
     //  1.  All the data passed around the promise chain.
@@ -144,28 +149,7 @@ console.log('upload fired');
             console.error(error);
 
         })
-
-};
-
-(function() {
-  'use strict';
-  window.addEventListener('load', function() {
-    // Fetch all the forms we want to apply custom Bootstrap validation styles to
-    var forms = document.getElementsByClassName('needs-validation');
-    // Loop over them and prevent submission
-    var validation = Array.prototype.filter.call(forms, function(form) {
-      form.addEventListener('submit', function(event) {
-        if (form.checkValidity() === false) {
-          event.preventDefault();
-          event.stopPropagation();
-        } else {
-            uploadFile();
-        }
-        form.classList.add('was-validated');
-      }, false);
-    });
-  }, false);
-})();
+});
 
 //
 //  Query to see if the email provided exists in the file can be sent.
