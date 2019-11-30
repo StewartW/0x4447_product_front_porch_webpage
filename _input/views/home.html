@@ -1,11 +1,13 @@
 <form class="needs-validation">
+
     <div class="input-group mb-3">
 
         <div class="input-group-prepend">
             <span class="input-group-text" id="basic-addon1">@</span>
         </div>
 
-        <input id="email_from" type="email" class="form-control" placeholder="From Email" aria-label="Email" aria-describedby="basic-addon1" required autofocus>
+        <input id="email_from" type="email" class="form-control" placeholder="From Email" aria-label="Email" aria-describedby="basic-addon1" autofocus="" required="">
+
         <div class="invalid-feedback">
             Please provide a valid email
         </div>
@@ -17,7 +19,8 @@
             <span class="input-group-text" id="basic-addon1">@</span>
         </div>
 
-        <input id="email_to" type="email" class="form-control" placeholder="To Email" aria-label="Email" aria-describedby="basic-addon1" required>
+        <input id="email_to" type="email" class="form-control" placeholder="To Email" aria-label="Email" aria-describedby="basic-addon1" required="">
+
         <div class="invalid-feedback">
             Please provide a valid email
         </div>
@@ -25,7 +28,7 @@
 
     <div class="custom-file">
 
-        <input id="profile_photo" type="file" class="custom-file-input" required>
+        <input id="profile_photo" type="file" class="custom-file-input" aria-label="File" required="">
 
         <label class="custom-file-label" for="validatedCustomFile">Choose file...</label>
 
@@ -41,6 +44,7 @@
         <span id="upload-text">Upload</span>
         <span id="upload-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
     </button>
+
 </form>
 
 <script>
@@ -102,6 +106,7 @@ $("input:file").change(function(data) {
 //  React when the user wants to upload the file.
 //
 $("#upload").on('click', function(event) {
+
     $("#upload-spinner").show();
     $("#upload-text").text("Uploading");
     $("#upload").attr("disabled", "disabled");
