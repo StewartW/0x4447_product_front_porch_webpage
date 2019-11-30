@@ -99,7 +99,9 @@ $("input:file").change(function(data) {
 //
 //  React when the user wants to upload the file.
 //
-$("#upload").on('click', function(event) {
+$("#upload").on('submit', function(event) {
+
+    event.preventDefault();
 
     $("#upload-spinner").show();
     $("#upload-text").text("Uploading");
