@@ -1,33 +1,49 @@
 <form class="needs-validation">
+    <div class="row">
+        <div class="col-9">
+            <div class="input-group mb-3">
 
-    <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon1">@</span>
+                </div>
 
-        <div class="input-group-prepend">
-            <span class="input-group-text" id="basic-addon1">@</span>
+                <input id="email_from" type="email" class="form-control" placeholder="From Email" aria-label="Email" aria-describedby="basic-addon1" autofocus="" required="">
+
+            </div>
+
+            <div class="input-group mb-3">
+
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon1">@</span>
+                </div>
+
+                <input id="email_to" type="email" class="form-control" placeholder="To Email" aria-label="Email" aria-describedby="basic-addon1" required="">
+
+            </div>
+
+            <div class="custom-file">
+
+                <input id="profile_photo" type="file" class="custom-file-input" aria-label="File" required="">
+
+                <label class="custom-file-label" for="validatedCustomFile">Choose file...</label>
+
+            </div>
+
+            <div id="draganddrophandler" class="custom-file drag-drop">
+                Or Drag & Drop a file on this page
+            </div>
         </div>
-
-        <input id="email_from" type="email" class="form-control" placeholder="From Email" aria-label="Email" aria-describedby="basic-addon1" autofocus="" required="">
-
-    </div>
-
-    <div class="input-group mb-3">
-
-        <div class="input-group-prepend">
-            <span class="input-group-text" id="basic-addon1">@</span>
+        <div class="col-3">
+            <div class="row">
+                <div class="col">
+                    <h5>File to Upload Info</h5>
+                </div>
+            </div>
+            <div class="row">
+                <div id="file-info" class="col"></div>
+            </div>
         </div>
-
-        <input id="email_to" type="email" class="form-control" placeholder="To Email" aria-label="Email" aria-describedby="basic-addon1" required="">
-
     </div>
-
-    <div class="custom-file">
-
-        <input id="profile_photo" type="file" class="custom-file-input" aria-label="File" required="">
-
-        <label class="custom-file-label" for="validatedCustomFile">Choose file...</label>
-
-    </div>
-
     <p>Sent <span id="data_sent"></span> out of <span id="file_size"></span>, which is <span id="percentage"></span>%</p>
 
     <p>Upload speed: <span id="speed"></span>/Bps</p>
@@ -59,10 +75,9 @@ let ui_speed = $("#speed");
 let ui_time_left = $("#time_left");
 
 //
-//  React to the input file field, and save the file reference.
+//  Handle the processing of a file that was drug onto the web page and dropped.
 //
-$("input:file").change(function(data) {
-
+function handleDragDropFile(data) {
     //
     //  1.  Allow us to read files from the users disk
     //
@@ -73,20 +88,52 @@ $("input:file").change(function(data) {
     //      to crop it
     //
     reader.onload = function(file) {
-
         //
         //  1.  Save the B64 file blob.
         //
         file_blob = base64_to_blob(file.target.result);
-
-        console.log("File saved in to memory.");
-
     }
 
     //
     //  3.  Attach the selected file to the FileReader object which will
     //      subsequently call .onload().
     //
+    reader.readAsDataURL(data[0]);
+
+    //
+    //  4.  Save the file name.
+    //
+    file_name = data[0].name;
+
+    $("#file-info").html(file_name);
+}
+
+//
+//  React to the input file field, and save the file reference.
+//
+$("input:file").change(function(data) {
+    //
+    //  1.  Allow us to read files from the users disk
+    //
+    let reader = new FileReader();
+
+    //
+    //  2.  Get the selected image from file unloader and set it to cropper
+    //      to crop it
+    //
+    reader.onload = function(file) {
+        //
+        //  1.  Save the B64 file blob.
+        //
+        file_blob = base64_to_blob(file.target.result);
+
+        console.log("File saved in to memory.");
+    }
+
+    //
+    //  3.  Attach the selected file to the FileReader object which will
+    //      subsequently call .onload().
+    //    
     reader.readAsDataURL(this.files[0]);
 
     //
@@ -94,18 +141,29 @@ $("input:file").change(function(data) {
     //
     file_name = data.target.files[0].name;
 
+    $("#file-info").html(file_name);
 });
+
+function setUploadUiState(uploading) {
+    if (uploading) {
+        $("#upload-spinner").show();
+        $("#upload-text").text("Uploading");
+        $("#upload").prop("disabled", true);
+    } else {
+        $("#upload-spinner").hide();
+        $("#upload-text").text("Upload");
+        $("#upload").attr("disabled", false);
+    }
+}
 
 //
 //  React when the user wants to upload the file.
 //
-$("#upload").on('submit', function(event) {
+$("#upload").on('click', function(event) {
 
     event.preventDefault();
 
-    $("#upload-spinner").show();
-    $("#upload-text").text("Uploading");
-    $("#upload").attr("disabled", "disabled");
+    setUploadUiState(true);
 
     //
     //  1.  All the data passed around the promise chain.
@@ -144,10 +202,12 @@ $("#upload").on('submit', function(event) {
         }).then(function(container) {
 
             console.info('Uploading process finished.');
+            setUploadUiState(false);
 
         }).catch(function(error) {
 
             console.error(error);
+            setUploadUiState(false);
 
         })
 });
@@ -399,4 +459,27 @@ function upload_object(container)
     })
 }
 
+//
+// These are jQuery code fragments that control the drag and drop of files
+//
+$(document).on('dragenter', function (e)
+{
+    e.stopPropagation();
+    e.preventDefault();
+});
+
+$(document).on('dragover', function (e) 
+{
+  e.stopPropagation();
+  e.preventDefault();  
+});
+
+$(document).on('drop', function (e) 
+{
+    e.preventDefault();
+    let files = e.originalEvent.dataTransfer.files;
+ 
+     //We need to send dropped files to Server
+     handleDragDropFile(files);
+});
 </script>
