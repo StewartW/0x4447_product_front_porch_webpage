@@ -105,7 +105,7 @@ function handleDragDropFile(data) {
     //
     file_name = data[0].name;
 
-    $("#file-info").html(file_name);
+    $("#file-info").text(file_name);
 }
 
 //
@@ -141,7 +141,7 @@ $("input:file").change(function(data) {
     //
     file_name = data.target.files[0].name;
 
-    $("#file-info").html(file_name);
+    $("#file-info").text(file_name);
 });
 
 function setUploadUiState(uploading) {
