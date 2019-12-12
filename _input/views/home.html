@@ -1,36 +1,43 @@
 <form class="needs-validation">
     <div class="row">
         <div class="col-9">
-            <div class="input-group mb-3">
+            <div class="row">
+                <div class="col-6">
+                    <div class="input-group mb-3">
 
-                <div class="input-group-prepend">
-                    <span class="input-group-text" id="basic-addon1">@</span>
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="basic-addon1">@</span>
+                        </div>
+
+                        <input id="email_from" type="email" class="form-control" placeholder="From Email" aria-label="Email" aria-describedby="basic-addon1" autofocus="" required="">
+
+                    </div>
                 </div>
+                <div class="col-6">
+                    <div class="input-group mb-3">
 
-                <input id="email_from" type="email" class="form-control" placeholder="From Email" aria-label="Email" aria-describedby="basic-addon1" autofocus="" required="">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="basic-addon1">@</span>
+                        </div>
 
-            </div>
+                        <input id="email_to" type="email" class="form-control" placeholder="To Email" aria-label="Email" aria-describedby="basic-addon1" required="">
 
-            <div class="input-group mb-3">
-
-                <div class="input-group-prepend">
-                    <span class="input-group-text" id="basic-addon1">@</span>
+                    </div>
                 </div>
-
-                <input id="email_to" type="email" class="form-control" placeholder="To Email" aria-label="Email" aria-describedby="basic-addon1" required="">
-
             </div>
+            <div class="row">
+                <div class="col-12">
+                    <div id="drag-drop-area">
+                        <img src="../assets/img/dragdrop.png" />
+                    </div>
+                    <div id="custom-file" class="custom-file">
 
-            <div class="custom-file">
+                        <input id="profile_photo" type="file" class="custom-file-input" aria-label="File" required="">
 
-                <input id="profile_photo" type="file" class="custom-file-input" aria-label="File" required="">
+                        <label class="custom-file-label" for="validatedCustomFile">Choose file...</label>
 
-                <label class="custom-file-label" for="validatedCustomFile">Choose file...</label>
-
-            </div>
-
-            <div id="draganddrophandler" class="custom-file drag-drop">
-                Or Drag & Drop a file on this page
+                    </div>
+                </div>
             </div>
         </div>
         <div class="col-3">
@@ -462,24 +469,34 @@ function upload_object(container)
 //
 // These are jQuery code fragments that control the drag and drop of files
 //
-$(document).on('dragenter', function (e)
+$('#drag-drop-area').on('dragenter', function (e)
 {
     e.stopPropagation();
     e.preventDefault();
 });
 
-$(document).on('dragover', function (e) 
+$('#drag-drop-area').on('dragover', function (e) 
 {
   e.stopPropagation();
   e.preventDefault();  
 });
 
-$(document).on('drop', function (e) 
+$('#drag-drop-area').on('drop', function (e) 
 {
     e.preventDefault();
     let files = e.originalEvent.dataTransfer.files;
  
      //We need to send dropped files to Server
      handleDragDropFile(files);
+});
+
+$(document).ready(function() {
+    $('#custom-file').hide();
+});
+
+$('#drag-drop-area').click(function (e)
+{
+    $('#drag-drop-area').hide();
+    $('#custom-file').show();
 });
 </script>

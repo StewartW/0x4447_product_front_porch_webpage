@@ -6,13 +6,16 @@
     text-align: center;
 }
 
-.drag-drop {
-    border:2px dotted #0B85A1;
-    width:400px;
-    color:#92AAB0;
-    text-align:left;vertical-align:middle;
-    padding:10px 10px 10 10px;
-    margin-top: 10px;
-    margin-bottom:10px;
-    font-size:150%;
+#drag-drop-area {
+    text-align: center;
+}
+
+#drag-drop-area img {
+    cursor: pointer;
+    border: 1px solid rgba(0,0,0,.1);
+}
+
+#drag-drop-area img:hover {
+    cursor: pointer;
+    border: 1px solid rgba(0,0,0,.2);
 }
