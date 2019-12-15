@@ -1,8 +1,8 @@
 <form class="needs-validation">
     <div class="row">
-        <div class="col-9">
+        <div class="col-12">
             <div class="row">
-                <div class="col-6">
+                <div class="col-md-6 col-sm-12">
                     <div class="input-group mb-3">
 
                         <div class="input-group-prepend">
@@ -13,7 +13,7 @@
 
                     </div>
                 </div>
-                <div class="col-6">
+                <div class="col-md-6 col-sm-12">
                     <div class="input-group mb-3">
 
                         <div class="input-group-prepend">
@@ -27,9 +27,6 @@
             </div>
             <div class="row">
                 <div class="col-12">
-                    <div id="drag-drop-area">
-                        <img src="../assets/img/dragdrop.png" />
-                    </div>
                     <div id="custom-file" class="custom-file">
 
                         <input id="profile_photo" type="file" class="custom-file-input" aria-label="File" required="">
@@ -40,28 +37,35 @@
                 </div>
             </div>
         </div>
-        <div class="col-3">
-            <div class="row">
-                <div class="col">
-                    <h5>File to Upload Info</h5>
-                </div>
-            </div>
-            <div class="row">
-                <div id="file-info" class="col"></div>
-            </div>
+    </div>
+    <div class="row vertical-space">
+        <div class="col-12">
+            Selected File: <span id="file-info"></span>            
         </div>
     </div>
-    <p>Sent <span id="data_sent"></span> out of <span id="file_size"></span>, which is <span id="percentage"></span>%</p>
-
-    <p>Upload speed: <span id="speed"></span>/Bps</p>
-
-    <p>Time left: <span id="time_left"></span>/s</p>
-
-    <button id="upload" class="btn btn-lg btn-primary btn-block" type="submit">
-        <span id="upload-text">Upload</span>
-        <span id="upload-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
-    </button>
-
+    <div class="row vertical-space">
+        <div class="col-12">
+            Sent <span id="data_sent"></span> out of <span id="file_size"></span>, which is <span id="percentage"></span>%
+        </div>
+    </div>
+    <div class="row vertical-space">
+        <div class="col-12">
+            Upload speed: <span id="speed"></span>/Bps
+        </div>
+    </div>
+    <div class="row vertical-space">
+        <div class="col-12">
+            Time left: <span id="time_left"></span>/s
+        </div>
+    </div>
+    <div class="row vertical-space">
+        <div class="col-12">
+            <button id="upload" class="btn btn-lg btn-primary btn-block" type="submit">
+                <span id="upload-text">Upload</span>
+                <span id="upload-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
+            </button>
+        </div>
+    </div>
 </form>
 
 <script>
@@ -469,19 +473,19 @@ function upload_object(container)
 //
 // These are jQuery code fragments that control the drag and drop of files
 //
-$('#drag-drop-area').on('dragenter', function (e)
+$(document).on('dragenter', function (e)
 {
     e.stopPropagation();
     e.preventDefault();
 });
 
-$('#drag-drop-area').on('dragover', function (e) 
+$(document).on('dragover', function (e) 
 {
   e.stopPropagation();
   e.preventDefault();  
 });
 
-$('#drag-drop-area').on('drop', function (e) 
+$(document).on('drop', function (e) 
 {
     e.preventDefault();
     let files = e.originalEvent.dataTransfer.files;
@@ -490,13 +494,4 @@ $('#drag-drop-area').on('drop', function (e)
      handleDragDropFile(files);
 });
 
-$(document).ready(function() {
-    $('#custom-file').hide();
-});
-
-$('#drag-drop-area').click(function (e)
-{
-    $('#drag-drop-area').hide();
-    $('#custom-file').show();
-});
 </script>

@@ -6,16 +6,15 @@
     text-align: center;
 }
 
-#drag-drop-area {
-    text-align: center;
+.vertical-space {
+    margin-top: 15px;
 }
 
-#drag-drop-area img {
-    cursor: pointer;
-    border: 1px solid rgba(0,0,0,.1);
+#file-info {
+    font-weight: bold;
 }
 
-#drag-drop-area img:hover {
-    cursor: pointer;
-    border: 1px solid rgba(0,0,0,.2);
+.footer-divider {
+    margin-top: 20px;
+    margin-bottom: 11px;
 }
