@@ -9,7 +9,7 @@ phases:
   pre_build:
     commands:
       - 'echo "{ \"DOMAIN\": \"$DOMAIN\", \"S3_BUCKET_FRONT_PORCH_DATABASE\": \"$S3_BUCKET_FRONT_PORCH_DATABASE\", \"S3_BUCKET_FRONT_PORCH_UPLOADS\": \"$S3_BUCKET_FRONT_PORCH_UPLOADS\", \"DISTRIBUTION_ID\": \"$DISTRIBUTION_ID\", \"YEAR_ESTABLISHED\": \"$YEAR_ESTABLISHED\", \"COMPANY_NAME\": \"$COMPANY_NAME\", \"AWS_REGION\": \"$AWS_REGION\", \"COGNITO_IDENTITY_POOL_ID\": \"$COGNITO_IDENTITY_POOL_ID\"\r\n}" > env.json'
-      - curl $COMPANY_LOGO_URL > ./assets/img/logo.jpg
+      - curl $COMPANY_LOGO_URL > ./_input/assets/img/logo.jpg
   build:
     commands:
       - echo "Building the site using Avocado."
