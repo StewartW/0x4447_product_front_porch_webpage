@@ -40,7 +40,7 @@
     </div>
     <div class="row vertical-space">
         <div class="col-12">
-            Selected File: <span id="file-info"></span>            
+            Selected File: <span id="file-info"></span>
         </div>
     </div>
     <div class="row vertical-space">
@@ -86,98 +86,31 @@ let ui_speed = $("#speed");
 let ui_time_left = $("#time_left");
 
 //
-//  Handle the processing of a file that was drug onto the web page and dropped.
-//
-function handleDragDropFile(data) {
-    //
-    //  1.  Allow us to read files from the users disk
-    //
-    let reader = new FileReader();
-
-    //
-    //  2.  Get the selected image from file unloader and set it to cropper
-    //      to crop it
-    //
-    reader.onload = function(file) {
-        //
-        //  1.  Save the B64 file blob.
-        //
-        file_blob = base64_to_blob(file.target.result);
-    }
-
-    //
-    //  3.  Attach the selected file to the FileReader object which will
-    //      subsequently call .onload().
-    //
-    reader.readAsDataURL(data[0]);
-
-    //
-    //  4.  Save the file name.
-    //
-    file_name = data[0].name;
-
-    $("#file-info").text(file_name);
-}
-
-//
 //  React to the input file field, and save the file reference.
 //
 $("input:file").change(function(data) {
-    //
-    //  1.  Allow us to read files from the users disk
-    //
-    let reader = new FileReader();
 
-    //
-    //  2.  Get the selected image from file unloader and set it to cropper
-    //      to crop it
-    //
-    reader.onload = function(file) {
-        //
-        //  1.  Save the B64 file blob.
-        //
-        file_blob = base64_to_blob(file.target.result);
+    process_uploaded_file(data);
 
-        console.log("File saved in to memory.");
-    }
-
-    //
-    //  3.  Attach the selected file to the FileReader object which will
-    //      subsequently call .onload().
-    //    
-    reader.readAsDataURL(this.files[0]);
-
-    //
-    //  4.  Save the file name.
-    //
-    file_name = data.target.files[0].name;
-
-    $("#file-info").text(file_name);
 });
-
-function setUploadUiState(uploading) {
-    if (uploading) {
-        $("#upload-spinner").show();
-        $("#upload-text").text("Uploading");
-        $("#upload").prop("disabled", true);
-    } else {
-        $("#upload-spinner").hide();
-        $("#upload-text").text("Upload");
-        $("#upload").attr("disabled", false);
-    }
-}
 
 //
 //  React when the user wants to upload the file.
 //
 $("#upload").on('click', function(event) {
 
+    //
+    //  1.  Prevent the the default form actions;
+    //
     event.preventDefault();
 
-    setUploadUiState(true);
+    //
+    //  2.  Switch the UI to represent the right state.
+    //
+    ui_state_switch(true);
 
     //
-    //  1.  All the data passed around the promise chain.
+    //  3.  All the data passed around the promise chain.
     //
     let container = {
         //
@@ -212,13 +145,15 @@ $("#upload").on('click', function(event) {
 
         }).then(function(container) {
 
+            ui_state_switch(false);
+
             console.info('Uploading process finished.');
-            setUploadUiState(false);
 
         }).catch(function(error) {
 
+            ui_state_switch(false);
+
             console.error(error);
-            setUploadUiState(false);
 
         })
 });
@@ -247,8 +182,7 @@ function prepare_the_data(container)
         //
         return resolve(container);
 
-
-    })
+    });
 }
 
 //
@@ -349,7 +283,7 @@ function check_if_user_exists(container)
 
         });
 
-    })
+    });
 }
 
 //
@@ -434,7 +368,7 @@ function upload_object(container)
             let time_left = Math.round((progress.total - progress.loaded) / speed_bps);
 
             //
-            //  Update the UI.
+            //  -> Update the UI upload stats.
             //
             ui_data_sent.text(Number(progress.loaded).toLocaleString());
             ui_file_size.text(Number(progress.total).toLocaleString());
@@ -470,28 +404,115 @@ function upload_object(container)
     })
 }
 
+//   _    _   ______   _        _____    ______   _____     _____
+//  | |  | | |  ____| | |      |  __ \  |  ____| |  __ \   / ____|
+//  | |__| | | |__    | |      | |__) | | |__    | |__) | | (___
+//  |  __  | |  __|   | |      |  ___/  |  __|   |  _  /   \___ \
+//  | |  | | | |____  | |____  | |      | |____  | | \ \   ____) |
+//  |_|  |_| |______| |______| |_|      |______| |_|  \_\ |_____/
 //
-// These are jQuery code fragments that control the drag and drop of files
+
 //
-$(document).on('dragenter', function (e)
-{
-    e.stopPropagation();
-    e.preventDefault();
+//  Handle the processing of a file that was drug onto the web page and dropped.
+//
+function process_uploaded_file(data) {
+
+    //
+    //  1.  Allow us to read files from the users disk
+    //
+    let reader = new FileReader();
+
+    //
+    //  2.  Get the selected image from file unloader and set it to cropper
+    //      to crop it
+    //
+    reader.onload = function(file) {
+
+        //
+        //  1.  Save the B64 file blob.
+        //
+        file_blob = base64_to_blob(file.target.result);
+
+        console.log("File saved in to memory.");
+
+    }
+
+    //
+    //  3.  Attach the selected file to the FileReader object which will
+    //      subsequently call .onload().
+    //
+    reader.readAsDataURL(data[0]);
+
+    //
+    //  4.  Save the file name.
+    //
+    file_name = data[0].name;
+
+    //
+    //  5.  Update the UI with the name of the file selected.
+    //
+    $("#file-info").text(file_name);
+}
+
+//
+//  This functions is used to switch the UI based if a file is being uploaded
+//  or not.
+//
+function ui_state_switch(uploading) {
+
+    if(uploading)
+    {
+        $("#upload-spinner").show();
+        $("#upload-text").text("Uploading");
+        $("#upload").prop("disabled", true);
+    }
+
+    if(!uploading)
+    {
+        $("#upload-spinner").hide();
+        $("#upload-text").text("Upload");
+        $("#upload").attr("disabled", false);
+    }
+}
+
+//
+//  DRAG & DROP
+//
+
+//
+//  React when a file get dragged on the page.
+//
+$(document).on('dragenter', function(event) {
+
+    event.stopPropagation();
+    event.preventDefault();
+
 });
 
-$(document).on('dragover', function (e) 
-{
-  e.stopPropagation();
-  e.preventDefault();  
+//
+//  React when the file is dragged over the area.
+//
+$(document).on('dragover', function(event) {
+
+    event.stopPropagation();
+    event.preventDefault();
+
 });
 
-$(document).on('drop', function (e) 
-{
-    e.preventDefault();
-    let files = e.originalEvent.dataTransfer.files;
- 
-     //We need to send dropped files to Server
-     handleDragDropFile(files);
+//
+//  React when the file gets released on the page.
+//
+$(document).on('drop', function(event) {
+
+    event.preventDefault();
+
+    let files = event.originalEvent.dataTransfer.files;
+
+    //
+    //  We need to send dropped files to Server
+    //
+    process_uploaded_file(files);
+
 });
 
 </script>
