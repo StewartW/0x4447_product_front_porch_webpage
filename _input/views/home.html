@@ -509,14 +509,21 @@ $(document).on('dragover', function(event) {
 //
 $(document).on('drop', function(event) {
 
+    //
+    //  1.  Prevent the default drop action.
+    //
     event.preventDefault();
 
-    let files = event.originalEvent.dataTransfer.files;
+    //
+    //  2.  Get the file dropped.
+    //
+    let data = event.originalEvent.dataTransfer.files;
 
     //
-    //  We need to send dropped files to Server
+    //  1.  Call the function that reads the selected file, and pass
+    //      also the context of this function to it.
     //
-    process_uploaded_file(files);
+    process_uploaded_file.call(this, data);
 
 });
 
