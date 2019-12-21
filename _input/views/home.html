@@ -94,7 +94,7 @@ $("input:file").change(function(data) {
     //  1.  Call the function that reads the selected file, and pass
     //      also the context of this function to it.
     //
-    process_uploaded_file.call(this, data);
+    process_uploaded_file(data);
 
 });
 
@@ -445,7 +445,7 @@ function process_uploaded_file(data) {
     //  3.  Attach the selected file to the FileReader object which will
     //      subsequently call .onload().
     //
-    reader.readAsDataURL(this.files[0]);
+    reader.readAsDataURL(data.target.files[0]);
 
     //
     //  4.  Save the file name.
@@ -489,8 +489,8 @@ function ui_state_switch(uploading) {
 //
 $(document).on('dragenter', function(event) {
 
-    event.stopPropagation();
     event.preventDefault();
+    event.stopPropagation();
 
 });
 
@@ -499,8 +499,8 @@ $(document).on('dragenter', function(event) {
 //
 $(document).on('dragover', function(event) {
 
-    event.stopPropagation();
     event.preventDefault();
+    event.stopPropagation();
 
 });
 
@@ -513,17 +513,22 @@ $(document).on('drop', function(event) {
     //  1.  Prevent the default drop action.
     //
     event.preventDefault();
+    event.stopPropagation();
 
     //
     //  2.  Get the file dropped.
     //
-    let data = event.originalEvent.dataTransfer.files;
+    files = {
+        target: {
+            files: event.originalEvent.dataTransfer.files
+        }
+    }
 
     //
     //  1.  Call the function that reads the selected file, and pass
     //      also the context of this function to it.
     //
-    process_uploaded_file.call(this, data);
+    process_uploaded_file(files);
 
 });
 
