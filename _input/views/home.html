@@ -101,7 +101,7 @@ $("input:file").change(function(data) {
 //
 //  React when the user wants to upload the file.
 //
-$("#upload").on("submit", function(event) {
+$("#upload").on("click", function(event) {
 
     //
     //  1.  Prevent the the default form actions;
@@ -111,7 +111,7 @@ $("#upload").on("submit", function(event) {
     //
     //  2.  Switch the UI to represent the right state.
     //
-    ui_state_switch(true);
+    disable_ui(true);
 
     //
     //  3.  All the data passed around the promise chain.
@@ -149,13 +149,13 @@ $("#upload").on("submit", function(event) {
 
         }).then(function(container) {
 
-            ui_state_switch(false);
+            disable_ui(false);
 
             console.info('Uploading process finished.');
 
         }).catch(function(error) {
 
-            ui_state_switch(false);
+            disable_ui(false);
 
             console.error(error);
 
@@ -463,7 +463,7 @@ function process_uploaded_file(data) {
 //  This functions is used to switch the UI based if a file is being uploaded
 //  or not.
 //
-function ui_state_switch(uploading) {
+function disable_ui(uploading) {
 
     if(uploading)
     {
