@@ -90,7 +90,7 @@ let ui_time_left = $("#time_left");
 //
 $("input:file").change(function(data) {
 
-    process_uploaded_file(data);
+    process_uploaded_file.call(this, data)
 
 });
 
@@ -441,17 +441,18 @@ function process_uploaded_file(data) {
     //  3.  Attach the selected file to the FileReader object which will
     //      subsequently call .onload().
     //
-    reader.readAsDataURL(data[0]);
+    reader.readAsDataURL(this.files[0]);
 
     //
     //  4.  Save the file name.
     //
-    file_name = data[0].name;
+    file_name = data.target.files[0].name;
 
     //
     //  5.  Update the UI with the name of the file selected.
     //
     $("#file-info").text(file_name);
+
 }
 
 //
