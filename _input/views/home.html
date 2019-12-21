@@ -107,6 +107,7 @@ $("#upload").on('submit', function(event) {
     //  1.  Prevent the the default form actions;
     //
     event.preventDefault();
+    event.stopPropagation();
 
     //
     //  2.  Switch the UI to represent the right state.
