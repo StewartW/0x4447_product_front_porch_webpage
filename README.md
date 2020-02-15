@@ -2,6 +2,23 @@
 
 This is the website for the [0x4447_product_front_porch](https://github.com/0x4447/0x4447_product_front_porch) proejct.
 
+# How to work locally
+
+This page is built using a mini framework called [Avocado](https://github.com/0x4447/0x4447-cli-node-avocado). Please intall this npm pckage globally, and review the README.md file of the project to find out how to work with it.
+
+# Environment Variables
+
+To set the environment variables, you have to create a `env.json` file in the root direcotry of the project
+
+```josn
+{
+    "S3_BUCKET_FRONT_PORCH_DATABASE": "",
+    "S3_BUCKET_FRONT_PORCH_UPLOADS": "",
+    "AWS_REGION": "",
+    "COGNITO_IDENTITY_POOL_ID": ""
+}
+```
+
 # The End
 
 If you enjoyed this project, please consider giving it a 🌟. And check out our [0x4447 GitHub account](https://github.com/0x4447), where you'll find additional resources you might find useful or interesting.
