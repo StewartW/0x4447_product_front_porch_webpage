@@ -169,7 +169,7 @@ $("#upload").on("click", function(event) {
 
         }).then(function(data){
 
-            start_multipart_upload(data.key,data.uploadID,file)
+            start_multipart_upload(data.key,data.upload_id,file)
 
         }).catch(function(error) {
 
@@ -344,56 +344,68 @@ function create_upload(container)
         };
         //
         // 4. If the request is successfull and data came through,
-        // resolve with the key from the container and uploadID
+        // resolve with the key from the container and upload_id
         // key is returned for the simplicity, rather than the container.
         //
         if(data){
-            console.log('The upload ID for the process is,'+data['UploadId']);
-            return resolve({'key':key,'uploadID':data['UploadId']})
+            console.log('The upload ID for the process is,'+data['Upload_id']);
+            return resolve({'key':key,'upload_id':data['Upload_id']})
         }
     });
 
 })}
 
 //
-// A function to separate the file to parts and
-// send to S3 sequentailly
+// A function to separate the file to parts and send to S3 sequentailly.
 //
-//
-function start_multipart_upload(key,uploadID,file){
+function start_multipart_upload(key, upload_id, file)
+{
     //
-    // 1. Initialize part number and uploaded as 0
-    // part_num is the variable for holding the order of individual parts
-    // uploaded is the variable for calculating the total uploaded size to S3
+    //  1.  variable for holding the order of individual parts.
     //
     let part_num = 0;
+
+    //
+    //  2.  variable for calculating the total uploaded size to S3.
+    //
     let uploaded = 0;
+
     //
-    // 2.Create a for loop to execute uploading processes, start from 0, increment by chunk_size each loop
+    //  3.  Create a for loop to execute uploading processes, start from 0,
+    //      increment by chunk_size each loop.
     //
-    for (var rangeStart = 0; rangeStart < file_size; rangeStart += chunk_size) {
+    for(let range_start = 0; range_start < file_size; range_start += chunk_size)
+    {
         //
-        // 3. Increment the part number by one
+        //  1.  Increment the part number by one.
         //
         ++part_num;
+
         //
-        // 4. File will be read from rangeStart to end variable,
-        // but at the end rangeStart+chunk_size might be more than the actual file size,
-        // so I set the end variable to the minimum(rangeStart+chunk_size,file_size)
+        //  2.  File will be read from range_start to end variable,
+        //      but at the end range_start+chunk_size might be more than
+        //      the actual file size, so I set the end variable to the
+        //      minimum(range_start+chunk_size,file_size).
         //
-        let end = Math.min(rangeStart + chunk_size, file_size);
-        let partParams = {
-            Body: file.slice(rangeStart, end),
+        let end = Math.min(range_start + chunk_size, file_size);
+
+        //
+        //  3.  Prepare the setting for the function.
+        //
+        let part_params = {
+            Body: file.slice(range_start, end),
             Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}',
             Key: key,
             PartNumber: String(part_num),
-            UploadId: uploadID
+            Upload_id: upload_id
         };
+
+        console.log('Started uploading part from ' + String(range_start) + ' to ' + String(range_start + chunk_size));
+
         //
-        // 5. Upload the part with tryNumber initialized at 0h
+        // 4. Upload the part with tryNumber initialized at 0h
         //
-        console.log('Started uploading part from '+String(rangeStart)+' to '+String(rangeStart+chunk_size));
-        uploadPart(key,uploadID,partParams,0)
+        uploadPart(key, upload_id, part_params, 0)
     };
 }
 
@@ -477,7 +489,7 @@ function refresh_ui(data){
 // succeeds. This function will be called for individual parts
 // iteratively.
 //
-function uploadPart(key,uploadID,partParams,tryNum){
+function uploadPart(key,upload_id,part_params,tryNum){
         //
         // 1. Make tryNum 1 if it is 0, otherwise don't change it.
         //
@@ -488,20 +500,20 @@ function uploadPart(key,uploadID,partParams,tryNum){
         let params = {
         Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}',
         Key: key,
-        UploadId: uploadID
+        Upload_id: upload_id
         };
         //
         // 3. Call uploadPart function with s3
         //
-        var request = s3.uploadPart(partParams, function(error, data) {
+        var request = s3.uploadPart(part_params, function(error, data) {
         //
         // 4. If error is returned from the function,
         // Recursively, call the function again till we reach the maximum upload tries.
         //
         if (error){
             if (tryNum < maxUploadTries) {
-                console.log('Retrying upload of part: #', partParams.PartNumber)
-                uploadPart(key, uploadID, partParams, tryNum + 1);
+                console.log('Retrying upload of part: #', part_params.PartNumber)
+                uploadPart(key, upload_id, part_params, tryNum + 1);
         }
         //
         // 5. If tryNumber is bigger than or equal to the maximum upload tries
@@ -512,7 +524,7 @@ function uploadPart(key,uploadID,partParams,tryNum){
             // 5.1 Call abortMultipartUpload function with s3, this function
             // would cancel the upload process and delete all the remained parts in S3.
             //
-            console.log('Failed uploading part: #', partParams.PartNumber)
+            console.log('Failed uploading part: #', part_params.PartNumber)
             s3.abortMultipartUpload(params,function(err,dt){
                 //
                 // 5.2 If error is returned, just log the error.
@@ -544,14 +556,14 @@ function uploadPart(key,uploadID,partParams,tryNum){
         // PartNumber is given in the function parameters as well which
         // defines the order of parts.
         //
-        parts['Parts'][partParams.PartNumber] = {
+        parts['Parts'][part_params.PartNumber] = {
             ETag: data.ETag,
-            PartNumber: Number(partParams.PartNumber)
+            PartNumber: Number(part_params.PartNumber)
         };
         //
         // 8. Increase the uploaded_yet parameter by body size.
         //
-        uploaded_yet += partParams.Body.size;
+        uploaded_yet += part_params.Body.size;
         let ui_data = {
             uploaded_yet: uploaded_yet
         };
@@ -572,7 +584,7 @@ function uploadPart(key,uploadID,partParams,tryNum){
             Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}',
             Key: key,
             MultipartUpload: parts,
-            UploadId: uploadID
+            Upload_id: upload_id
         };
         console.log("Completing upload...");
         //
