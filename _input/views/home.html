@@ -169,7 +169,7 @@ $("#upload").on("click", function(event) {
 
         }).then(function(data){
 
-            start_multipart_upload(data.key,data.upload_id,file)
+            start_multipart_upload(data.key, data.upload_id, file)
 
         }).catch(function(error) {
 
@@ -308,13 +308,18 @@ function check_if_user_exists(container)
 }
 
 //
-//  Get the selected file and upload it to S3.
+//  Tell AWS that we want to start a Multipart upload process, and we want
+//  back the ID so we can send all the small chunks and AWS will know how to
+//  put them back together.
 //
 function create_upload(container)
 {
-    return new Promise(function(resolve,reject){
+    return new Promise(function(resolve, reject) {
+
+    console.info('create_upload');
+
     //
-    // 1. Define paramaters to initialize Multipart Upload Process in S3
+    //  1.  Create the S3 object key.
     //
     let key = container.email_to
             + '/'
@@ -324,33 +329,42 @@ function create_upload(container)
             + '-'
             + file_name;
 
+    //
+    //  2.  Prepare multipart query.
+    //
     let multipart_params = {
-        Bucket:'{{S3_BUCKET_FRONT_PORCH_UPLOADS}}',
+        Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}',
         Key: key,
         ContentType: file.type
     };
 
     //
-    // 2. Call createMultipartUpload function for S3 to know that this will
-    // be a MP Upload and start the process.
+    //  3.  Call createMultipartUpload function for S3 to know that this will
+    //      be a MP Upload and start the process.
     //
-    console.info('creating the upload process')
-    s3.createMultipartUpload(multipart_params,function (err,data){
+    s3.createMultipartUpload(multipart_params, function(error, data) {
+
         //
-        // 3. If an error is return reject the promise with the error
+        //  1.  Check for internal Errors.
         //
-        if(err){
-            return reject(new Error(err))
-        };
+        if(error)
+        {
+            console.info(params);
+            return reject(error);
+        }
+
         //
-        // 4. If the request is successfull and data came through,
-        // resolve with the key from the container and upload_id
-        // key is returned for the simplicity, rather than the container.
+        //  2.  If the request is successfull and data came through,
+        //      resolve with the key from the container and upload_id
+        //      key is returned for the simplicity, rather than the container.
         //
-        if(data){
-            console.log('The upload ID for the process is,'+data['Upload_id']);
+        if(data)
+        {
+            console.info('The upload ID for the process is,' + data['Upload_id']);
+
             return resolve({'key':key,'upload_id':data['Upload_id']})
         }
+
     });
 
 })}
