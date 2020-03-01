@@ -85,7 +85,7 @@ let maxUploadTries = 10;
 
 //
 // On each multipart upload an upload ID is assigned to the process
-// thus, I keep this ID in a variable to easily pass it in sequential uploadPart requests.
+// thus, I keep this ID in a variable to easily pass it in sequential upload_part requests.
 // Also, initialize other parameters
 //
 //
@@ -419,7 +419,7 @@ function start_multipart_upload(key, upload_id, file)
         //
         // 4. Upload the part with tryNumber initialized at 0h
         //
-        uploadPart(key, upload_id, part_params, 0)
+        upload_part(key, upload_id, part_params, 0)
     };
 }
 
@@ -437,114 +437,156 @@ function start_multipart_upload(key, upload_id, file)
 //  succeeds. This function will be called for individual parts
 //  iteratively.
 //
-function uploadPart(key,upload_id,part_params,tryNum){
+function upload_part(key,upload_id,part_params,tryNum)
+{
         //
-        // 1. Make tryNum 1 if it is 0, otherwise don't change it.
+        //  1.  Make tryNum 1 if it is 0, otherwise don't change it.
         //
         tryNum = tryNum || 1;
+
         //
-        // 2. Create parameters for the s3.uploadPart function
+        //  2.  Create parameters for the s3.upload_part function
         //
         let params = {
-        Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}',
-        Key: key,
-        Upload_id: upload_id
+            Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}',
+            Key: key,
+            Upload_id: upload_id
         };
+
         //
-        // 3. Call uploadPart function with s3
+        //  3.  Call upload_part function with s3
         //
-        var request = s3.uploadPart(part_params, function(error, data) {
+        let request = s3.uploadPart(part_params, function(error, data) {
+
         //
-        // 4. If error is returned from the function,
-        // Recursively, call the function again till we reach the maximum upload tries.
+        //  4.  If error is returned from the function,
+        //      Recursively, call the function again till we reach the maximum
+        //      upload tries.
         //
-        if (error){
-            if (tryNum < maxUploadTries) {
+        if(error)
+        {
+            //
+            //  1.  If we did not reach the re-try limit we keep retrying
+            //      to upload the chunk.
+            //
+            if(tryNum < maxUploadTries)
+            {
                 console.log('Retrying upload of part: #', part_params.PartNumber)
-                uploadPart(key, upload_id, part_params, tryNum + 1);
+                upload_part(key, upload_id, part_params, tryNum + 1);
+            }
+
+            //
+            //  2.  If tryNumber is bigger than or equal to the maximum upload
+            //      tries abort the upload process.
+            //
+            if(tryNum >= maxUploadTries)
+            {
+                console.log('Failed uploading part: #', part_params.PartNumber)
+
+                //
+                //  1.  Call abortMultipartUpload function with s3, this
+                //      function would cancel the upload process and delete
+                //      all the remained parts in S3.
+                //
+                s3.abortMultipartUpload(params,function(error, data) {
+
+                    //
+                    //  1.  Check for internal Errors.
+                    //
+                    if(error)
+                    {
+                        console.info(params);
+                        return reject(error);
+                    }
+
+                    //
+                    //  2.  If request is successful and data is returned,
+                    //      this means abortion is done. Just log out the status.
+                    //
+                    if(data)
+                    {
+                        console.log('Successfully aborted');
+                    }
+                })
+
+                //
+                //  2.  After aborting, also return an Upload Failed Error.
+                //
+                return new Error('uploadFailedError');
+            }
+
+            //
+            // 3. If the upload is somehow failed, return the error.
+            //
+            return new Error(error);
+
         }
+
         //
-        // 5. If tryNumber is bigger than or equal to the maximum upload tries
-        // abort the upload process.
-        //
-        if (tryNum >= maxUploadTries){
-            //
-            // 5.1 Call abortMultipartUpload function with s3, this function
-            // would cancel the upload process and delete all the remained parts in S3.
-            //
-            console.log('Failed uploading part: #', part_params.PartNumber)
-            s3.abortMultipartUpload(params,function(err,dt){
-                //
-                // 5.2 If error is returned, just log the error.
-                //
-                if(err){
-                    console.log(err)
-                }
-                //
-                // 5.3 If request is successful and data is returned,
-                // this means abortion is done. Just log out the status.
-                //
-                if(dt){
-                    console.log('Successfully aborted')
-                }
-            })
-            //
-            // 5.4. After aborting, also return an Upload Failed Error.
-            //
-            return new Error('uploadFailedError')
-        }
-        //
-        // 6. If the upload is somehow failed, return the error.
-        //
-        return new Error(error);
-        }
-        //
-        // 7. Push information of the uploaded part to parts array,
-        // ETag is returned after the process within data parameter, which is unique for each part
-        // PartNumber is given in the function parameters as well which
-        // defines the order of parts.
+        //  5.  Push information of the uploaded part to parts array,
+        //      ETag is returned after the process within data parameter,
+        //      which is unique for each part
+        //      PartNumber is given in the function parameters as well which
+        //      defines the order of parts.
         //
         parts['Parts'][part_params.PartNumber] = {
             ETag: data.ETag,
             PartNumber: Number(part_params.PartNumber)
         };
+
         //
-        // 8. Increase the uploaded_yet parameter by body size.
+        //  6.  Increase the uploaded_yet parameter by body size.
         //
         uploaded_yet += part_params.Body.size;
+
         let ui_data = {
             uploaded_yet: uploaded_yet
         };
-        //
-        // 9. Refresh the UI with new information
-        //
-        refresh_ui(ui_data);
+
         console.log("Successfully uploaded", this.request.params.PartNumber);
-        //
-        // 9. If there are still some parts left to upload, just return and inform the user.
-        //
-        if (--parts_left > 0) return 'Done uploading part',this.request.params.PartNumber; // complete only when all parts uploaded
 
         //
-        // 10. Otherwise, create the parameters to complete multipart upload.
+        //  7.  Refresh the UI with new information
         //
-        var doneParams = {
+        refresh_ui(ui_data);
+
+        //
+        //  8.  If there are still some parts left to upload, just return
+        //      and inform the user.
+        //
+        if(--parts_left > 0)
+        {
+            //
+            //  complete only when all parts uploaded
+            //
+            return 'Done uploading part' ,this.request.params.PartNumber;
+        }
+
+        //
+        //  9.  Otherwise, create the parameters to complete multipart upload.
+        //
+        let doneParams = {
             Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}',
             Key: key,
             MultipartUpload: parts,
             Upload_id: upload_id
         };
+
         console.log("Completing upload...");
+
         //
-        // 11. Call the completeMulipartUpload fucntion with s3 if there aren't
-        // any parts left.
+        //  10. Call the completeMulipartUpload fucntion with s3 if there aren't
+        //      any parts left.
         //
         completeMultipartUpload(doneParams);
+
+        console.info('Uploading process finished.');
+
         //
-        // 12. Call disable_ui function since the upload is done.
+        //  11. Call disable_ui function since the upload is done.
         //
         disable_ui(false);
-        console.info('Uploading process finished.');
+
     });
 }
 
