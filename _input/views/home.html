@@ -77,17 +77,16 @@ let file_name = '';
 let file_blob = '';
 
 //
-// Initialize file_size and file variables, also set the maxUploadTries.
+//  Initialize file_size and file variables, also set the maxUploadTries.
 //
 let file_size = 0;
 let file = '';
 let maxUploadTries = 10;
 
 //
-// On each multipart upload an upload ID is assigned to the process
-// thus, I keep this ID in a variable to easily pass it in sequential upload_part requests.
-// Also, initialize other parameters
-//
+//  On each multipart upload an upload ID is assigned to the process
+//  thus, I keep this ID in a variable to easily pass it in sequential
+//  upload_part requests. Also, initialize other parameters
 //
 let upload_id = null;
 let uploaded_yet = 0;
