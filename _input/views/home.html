@@ -413,7 +413,7 @@ function create_upload(container)
     //
     //  2.  Prepare multipart query.
     //
-    let multipart_params = {
+    let params = {
         Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}',
         Key: key,
         ContentType: file.type
@@ -423,7 +423,7 @@ function create_upload(container)
     //  3.  Call createMultipartUpload function for S3 to know that this will
     //      be a MP Upload and start the process.
     //
-    s3.createMultipartUpload(multipart_params, function(error, data) {
+    s3.createMultipartUpload(params, function(error, data) {
 
         //
         //  1.  Check for internal Errors.
