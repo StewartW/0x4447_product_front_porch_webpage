@@ -659,7 +659,7 @@ function abort_multipart_upload(container)
     var params = {
         Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}', 
         Key: key, 
-        UploadId: upload_id
+        UploadId: container.upload_id
     };
 
     //
