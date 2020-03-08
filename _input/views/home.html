@@ -200,10 +200,11 @@ $("#upload").on("click", function(event) {
 
         }).catch(function(error) {
 
-            disable_ui(false);
-            abort_multipart_upload();
             console.error(error);
 
+            disable_ui(false);
+            abort_multipart_upload(container);
+            
         })
 });
 
