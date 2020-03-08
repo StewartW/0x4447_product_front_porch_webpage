@@ -77,6 +77,24 @@ let file_name = '';
 let file_blob = '';
 
 //
+//  Initialize file_size, also set the maxUploadTries.
+//
+let file_size = null;
+let maxUploadTries = 10;
+
+//
+//  On each multipart upload an upload ID is assigned to the process
+//  thus, I keep this ID in a variable to easily pass it in sequential
+//  upload_part requests. Also, initialize other parameters
+//
+let upload_id = null;
+let uploaded_yet = 0;
+let chunk_size = 5 * 1024 * 1024; // Minimum 10MB per chunk
+let start_time = null;
+let parts = null;  // Will be initialized as an array to keep track of uploaded parts
+let parts_left = null;
+
+//
 //  Grab the UI elements used to show the user the progress of the upload.
 //
 let ui_data_sent = $("#data_sent");
@@ -132,7 +150,19 @@ $("#upload").on("click", function(event) {
         //
         //  A random Nr used to make sure we have a unique file name.
         //
-        random: Math.floor(Math.random() * Math.floor(10000))
+        random: Math.floor(Math.random() * Math.floor(10000)),
+        //
+        //  Upload ID for the Multipart Upload
+        //
+        upload_id: '',
+        //
+        //  The array which will hold starting and ending points of chunks
+        //  
+        chunk_array: [],
+        //
+        //  The array which will hold chunks that are failed while uploading
+        // 
+        failed_chunk_array: []
     }
 
     //
@@ -140,23 +170,38 @@ $("#upload").on("click", function(event) {
     //
     prepare_the_data(container)
         .then(function(container) {
+            
+            return create_chunks(container);
+
+        })
+        .then(function(container) {
 
             return check_if_user_exists(container);
 
         }).then(function(container) {
 
-            return upload_object(container);
+            return create_upload(container);
+
+        }).then(function(container) {
+
+            return start_multipart_upload(container);
+
+        }).then(function(container) {
+
+            return upload_errors(container);
+
+        }).then(function(container) {
+     
+            return complete_multipart_upload(container);
 
         }).then(function(container) {
 
             disable_ui(false);
 
-            console.info('Uploading process finished.');
-
         }).catch(function(error) {
 
             disable_ui(false);
-
+            abort_multipart_upload();
             console.error(error);
 
         })
@@ -187,6 +232,60 @@ function prepare_the_data(container)
         return resolve(container);
 
     });
+}
+
+//
+//  A function to create chunks array, which is an array made of starting and ending
+//  bytes of individual chunks.
+//
+function create_chunks(container)
+{
+    return new Promise(function(resolve,reject){
+        //
+        //  1.  Check if file_size is defined.
+        //
+        if(file_size)
+        {
+            //
+            //  1.  Initialize part number and increment it on each for loop,
+            //  then assign to the chunk.
+            //
+            let part_num = 1;
+            console.log(file_size)
+            console.log(chunk_size)
+            //
+            //  2.  Create a for loop to initialize starting and ending points of chunks
+            //
+            for(let range_start = 0; range_start < file_size; range_start += chunk_size)
+            {   
+                //
+                //  1.  File will be read from range_start to end variable,
+                //      but at the end range_start+chunk_size might be more than
+                //      the actual file size, so I set the end variable to the
+                //      minimum(range_start+chunk_size,file_size).
+                //
+                let end = Math.min(range_start + chunk_size, file_size);
+                
+                console.log(range_start)
+                //
+                //  2.  Push the chunk info to the chunk_array object in container
+                //
+                container.chunk_array.push({start:range_start,end:end,part_number:part_num});
+                
+                //
+                //  3.  Increment the part number by one each loop
+                //
+                ++part_num;
+
+            };
+            return resolve(container);
+        }
+        if(!file_size)
+        {
+            return reject(new Error('File Not Defined'))
+        }
+    });
+
 }
 
 //
@@ -266,7 +365,6 @@ function check_if_user_exists(container)
                     //
                     //  4.  If nothing came back from the query we don't
                     //      allow the upload process.
-                    //
                     if(!result['_1'])
                     {
                         return reject(new Error("Recipient does not exists."))
@@ -291,121 +389,499 @@ function check_if_user_exists(container)
 }
 
 //
-//  Get the selected file and upload it to S3.
+//  Tell AWS that we want to start a Multipart upload process, and we want
+//  back the ID so we can send all the small chunks and AWS will know how to
+//  put them back together.
 //
-function upload_object(container)
+function create_upload(container)
 {
     return new Promise(function(resolve, reject) {
 
-        console.info('upload_object');
+    console.info('create_upload');
+
+    //
+    //  1.  Create the S3 object key.
+    //
+    let key = container.email_to
+            + '/'
+            + container.email_from
+            + '/'
+            + container.random
+            + '-'
+            + file_name;
+
+    //
+    //  2.  Prepare multipart query.
+    //
+    let multipart_params = {
+        Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}',
+        Key: key,
+        ContentType: file.type
+    };
+
+    //
+    //  3.  Call createMultipartUpload function for S3 to know that this will
+    //      be a MP Upload and start the process.
+    //
+    s3.createMultipartUpload(multipart_params, function(error, data) {
 
         //
-        //  1.  Get the starting time stamp used to calculate the speed
-        //      of the upload process.
+        //  1.  Check for internal Errors.
         //
-        let start_time = new Date().getTime();
+        if(error)
+        {
+            console.info(params);
+            return reject(error);
+        }
 
         //
-        //  2.  Create the path for the S3 object.
+        //  2.  If the request is successfull and data came through,
+        //      resolve with the key from the container and upload_id
+        //      key is returned for the simplicity, rather than the container.
+        //
+        if(data)
+        {
+            console.info('The upload ID for the process is,' + data['UploadId']);
+            container.upload_id = data['UploadId'];
+            //
+            //  1.  Set global upload_id variable to access it from abort_multipart_upload function
+            //
+            upload_id = data['UploadId'];
+            return resolve(container)
+        }
+    });
+
+})};
+
+
+//
+//  A function to separate the file to parts and send to S3 sequentailly.
+//
+function start_multipart_upload(container)
+{
+    return new Promise(async function(resolve,reject){
+        //
+        //  1.  Create the S3 object key.
         //
         let key = container.email_to
-                + "/"
+                + '/'
                 + container.email_from
-                + "/"
+                + '/'
                 + container.random
                 + '-'
                 + file_name;
 
         //
-        //  3.  Prepare the object to be sent
+        //  2.  array to hold all the promises returned from upload_part
+        //  this Promise will resolve when all of them has returned some value.
         //
-        let request = s3.putObject({
+        let promise_array = []
+
+        console.log(container.chunk_array)
+        container.chunk_array.forEach(function(chunk){
+            //
+            //  1.  Create part parameters
+            //
+            let part_params = {
+                Body: file.slice(chunk.start, chunk.end),
+                Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}',
+                Key: key,
+                PartNumber: chunk.part_number,
+                UploadId: container.upload_id
+            };
+            console.log(part_params);
+            console.log('Started uploading part from ' + String(chunk.start) + ' to ' + String(chunk.start + chunk_size));
+
+            //
+            // 2. Upload the part with tryNumber initialized at 0h
+            //
+            let promise = upload_part(container, part_params, chunk);
+
+            //
+            // 3. Add the promise to promise_array
+            //
+            promise_array.push(promise);
+        });
+        
+       //
+        //  3.  Resolve this promise when every part upload has returned,
+        //  What is returned from this promises will be only the parts that are failed 
+        //  to upload.
+        //
+        console.log('pushed all the promises')
+        Promise.all(promise_array).then(function(failed_ones){
+            //
+            //  1.  Remove successful ones and only take failed uploads
+            //
+            failed_ones.forEach(function(element){
+                if(element!=true)
+                {
+                    container.failed_chunk_array.push(element);
+                }
+            })
+            return resolve(container)
+        });
+    });
+}
+
+//
+//  A function to upload failed chunks and try till every part is uploaded.
+//  This will be a recursive function which would just call itself again till 
+//  failed_chunk_array length is zero.
+//
+
+
+function upload_errors(container)
+{
+    return new Promise(async function(resolve,reject){
+        //
+        //  1.  Create the S3 object key.
+        //
+        let key = container.email_to
+                + '/'
+                + container.email_from
+                + '/'
+                + container.random
+                + '-'
+                + file_name;
+
+        while(container.failed_chunk_array.length>0)
+        {
+            //
+            //  1.  Upload failed chunks again
+            //
+            let failed_ones = await upload_chunk_array(container,container.failed_chunk_array);
+            
+            //
+            //  2.  Initialize failed_chunk_array again so that we don't just keep pushing 
+            //  same parts.
+            //
+            container.failed_chunk_array = [];
+
+            //
+            //  3.  Push only those that are failed again.
+            //
+            failed_ones.forEach(function(element){
+                if(element!=true)
+                {
+                    container.failed_chunk_array.push(element);
+                }
+            })
+
+            
+        }
+        console.log('Uploaded all the parts successfully');
+        return resolve(container)
+
+    });
+}
+
+//
+// Function the complete the upload and tract time taken.
+//
+function complete_multipart_upload(container)
+{
+    return new Promise(function(resolve,reject){
+
+        //
+        //  1.  Create the S3 object key.
+        //
+        let key = container.email_to
+                + '/'
+                + container.email_from
+                + '/'
+                + container.random
+                + '-'
+                + file_name;
+
+        //
+        //  2.  Create the parameters to complete multipart upload.
+        //
+        console.log(parts);
+        let doneParams = {
             Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}',
             Key: key,
-            Body: file_blob
+            MultipartUpload: parts,
+            UploadId: container.upload_id
+        };
+
+        //
+        // 3. Call complete_multipart_upload function
+        //
+        s3.completeMultipartUpload(doneParams, function(error, data) {
+
+            //
+            //  1.  Check for internal Errors.
+            //
+            if(error)
+            {
+                console.log(doneParams);
+                return reject(error);
+            }
+
+            //
+            //  2.  If the request is successfull and data came through,
+            //      calculate the total time taken in uploading process.
+            //
+            if (data)
+            {
+                let delta = (new Date() - start_time) / 1000;
+                console.log('Completed upload in', delta, 'seconds');
+                console.log('Final upload data:', data);
+
+                resolve(container)
+            }
         });
+    });
+}
+
+//
+//  A function to abort upload so that server doesn't get populated with unfinished
+//  multipart upload files
+//
+function abort_multipart_upload(container)
+{
+    //
+    //  1.  Create the S3 object key.
+    //
+    let key = container.email_to
+            + '/'
+            + container.email_from
+            + '/'
+            + container.random
+            + '-'
+            + file_name;
+
+    //
+    //  2.  Create params to abort process, upload_id is gotten from global variable
+    //
+    var params = {
+        Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}', 
+        Key: key, 
+        UploadId: upload_id
+    };
+
+    //
+    //  3.  Call s3 function.
+    //
+    s3.abortMultipartUpload(params, function(err, data) {
+        if (err)
+        {   
+            console.log(err, err.stack);
+        }
+        if (data)
+        {
+            console.log('Successfully cancelled the upload process.');   
+        }
+});
+}
+
+//	 ______  _    _  _   _   _____  _______  _____  ____   _   _   _____
+//	|  ____|| |  | || \ | | / ____||__   __||_   _|/ __ \ | \ | | / ____|
+//	| |__   | |  | ||  \| || |        | |     | | | |  | ||  \| || (___
+//	|  __|  | |  | || . ` || |        | |     | | | |  | || . ` | \___ \
+//	| |     | |__| || |\  || |____    | |    _| |_| |__| || |\  | ____) |
+//	|_|      \____/ |_| \_| \_____|   |_|   |_____|\____/ |_| \_||_____/
+//
+
+//
+//  A Function to be called again and again while uploading chunks,
+//  takes the chunks array as a parameter. 
+//
+function upload_chunk_array(container,chunk_array)
+{
+    return new Promise(async function(resolve,reject){
+        //
+        //  1.  Create the S3 object key.
+        //
+        let key = container.email_to
+                + '/'
+                + container.email_from
+                + '/'
+                + container.random
+                + '-'
+                + file_name;
 
         //
-        //  4.  Add a listener to react every time there is a progress
-        //      update so we know how much of the file was sent.
+        //  2.  array to hold all the promises returned from upload_part
+        //  this Promise will resolve when all of them has returned some value.
         //
-        request.on('httpUploadProgress', function(progress) {
+        let promise_array = []
+
+        console.log(chunk_array)
+        chunk_array.forEach(function(chunk){
+            //
+            //  1.  Create part parameters
+            //
+            let part_params = {
+                Body: file.slice(chunk.start, chunk.end),
+                Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}',
+                Key: key,
+                PartNumber: chunk.part_number,
+                UploadId: container.upload_id
+            };
+            console.log(part_params);
+            console.log('Started uploading part from ' + String(chunk.start) + ' to ' + String(chunk.start + chunk_size));
 
             //
-            //  1.  Calculate the percentage by making sure that
+            // 2. Upload the part with tryNumber initialized at 0h
             //
-            //      - the value is from 0 to 100, and not the other way around.
-            //      - the result is a positive number.
-            //
-            let raw_percentage = (((progress.total - progress.loaded) / progress.total * 100) - 100) * -1
+            let promise = upload_part(container, part_params, chunk);
 
             //
-            //  2.  Convert the double in to an integer.
+            // 3. Add the promise to promise_array
             //
-            let percentage = Math.floor(raw_percentage)
-
-            //
-            //  3.  Get the time stamp used to calculate the upload speed, so
-            //      with this we know how much time passed from the point
-            //      we started.
-            //
-            end_time = new Date().getTime();
-
-            //
-            //  4.  Calculate how much time passed in seconds.
-            //
-            let duration = (end_time - start_time) / 1000
-
-            //
-            //  5.  Convert Bytes in to Bits.
-            //
-            bits = progress.loaded * 8;
-
-            //
-            //  6.  Get the upload speed.
-            //
-            let speed_bps = Math.round((bits / duration) / 8);
-
-            //
-            //  7.  Calculate the time left till the upload is done.
-            //
-            let time_left = Math.round((progress.total - progress.loaded) / speed_bps);
-
-            //
-            //  -> Update the UI upload stats.
-            //
-            ui_data_sent.text(Number(progress.loaded).toLocaleString());
-            ui_file_size.text(Number(progress.total).toLocaleString());
-            ui_percentage.text(percentage);
-            ui_speed.text(Number(speed_bps).toLocaleString());
-            ui_time_left.text(time_left);
-
+            promise_array.push(promise);
         });
+        
+        //
+        //  3.  Resolve this promise when every part upload has returned,
+        //  What is returned from this promises will be only the parts that are failed 
+        //  to upload.
+        //
+        let failed_ones = await Promise.all(promise_array);
+
+        return resolve(failed_ones)
+    });
+}
+
+//
+//  A Function to upload a file slice,
+//  returns a dictionary with ETag and PartNumber if
+//  succeeds. This function will be called for individual parts
+//  iteratively.    
+//
+function upload_part(container,part_params,chunk)
+{      
+    return new Promise(function(resolve,reject){
+        //
+        //  1.  Create the S3 object key.
+        //
+        console.log(parts)
+        let key = container.email_to
+                + '/'
+                + container.email_from
+                + '/'
+                + container.random
+                + '-'
+                + file_name;
 
         //
-        //  5.  React on errors.
+        //  2.  Create parameters for the s3.upload_part function
         //
-        request.on('error', function(error) {
-
-            console.error(error);
-
-            return reject(error);
-
-        });
+        let params = {
+            Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}',
+            Key: key,
+            Upload_id: container.upload_id
+        };
 
         //
-        //  6.  Wait until the upload process is done.
+        //  3.  Call upload_part function with s3
         //
-        request.send(function(response) {
 
+        let request = s3.uploadPart(part_params, function(error, data) {
             //
-            //  ->  Move to the next promise.
+            //  1.  If error is returned from the function,
+            //      Recursively, call the function again till we reach the maximum
+            //      upload tries.
             //
-            return resolve(container);
+            if(error)
+            {
+                console.log('Failed uploading part: #', part_params.PartNumber);
+                //
+                //  2.  Return the part along with its status
+                //
+                return resolve(chunk);
+                
+            }
+            if(data)
+            {   
+                console.log('Uploaded part: #',part_params.PartNumber);
 
+                //
+                //  1.  Push information of the uploaded part to parts array,
+                //      ETag is returned after the process within data parameter,
+                //      which is unique for each part
+                //      PartNumber is given in the function parameters as well which
+                //      defines the order of parts.
+                //
+                parts['Parts'][part_params.PartNumber-1] = {
+                    ETag: data.ETag,
+                    PartNumber: Number(part_params.PartNumber)
+                };
+
+                //
+                //  2.  Increase the uploaded_yet parameter by body size.
+                //
+                uploaded_yet += part_params.Body.size;
+
+                let ui_data = {
+                    uploaded_yet: uploaded_yet
+                };
+
+                console.log("Successfully uploaded", this.request.params.PartNumber);
+
+                //
+                //  3.  Refresh the UI with new information
+                //
+                refresh_ui(ui_data);
+
+                //
+                //  4.  Decrease the number of parts left
+                //
+                --parts_left;
+
+                return resolve(true)
+            }
         });
+        });
+}
+//
+//  A function to refresh the UI everytime a new upload is made
+//
+function refresh_ui(data)
+{
+    //
+    //  1.  If uploaded_yet parameter is given inside function parameter data.
+    //
+    if(data.uploaded_yet)
+    {
+        //
+        //  1.  Calculate the percentage of upload, by dividing the uploaded
+        //      size to total size.
+        //
+        let percentage = parseFloat(uploaded_yet)*100/(parseFloat(file_size));
 
-    })
+        //
+        //  2.  Round the result to 2 floating points and show it.
+        //
+        percentage = percentage.toFixed(2);
+
+        //
+        //  3.  Calculate the time passed, then get the speed by dividing
+        //      uploaded size by the time passed
+        //
+        let curr_time = new Date(); // convert to seconds
+        let time_passed = parseFloat(curr_time / 1000) - parseFloat(start_time / 1000);
+        let speed = uploaded_yet / time_passed;
+
+        speed = speed.toFixed(2);
+
+        //
+        //  4.  Calculate the time left by dividing the total file_size by
+        //      speed of the upload.
+        //
+        let time_left = Math.round((file_size-uploaded_yet) / speed);
+
+        //
+        //  5.  Set and show the calculated information.
+        //
+        $('#percentage').text(percentage);
+        $('#speed').text(speed);
+        $('#data_sent').text(uploaded_yet);
+        $('#time_left').text(time_left);
+
+    }
 }
 
 //   _    _   ______   _        _____    ______   _____     _____
@@ -419,44 +895,35 @@ function upload_object(container)
 //
 //  Handle the processing of a file that was drug onto the web page and dropped.
 //
-function process_uploaded_file(data) {
-
+function process_uploaded_file(data)
+{
     //
-    //  1.  Allow us to read files from the users disk
-    //
-    let reader = new FileReader();
-
-    //
-    //  2.  Get the selected image from file unloader and set it to cropper
-    //      to crop it
-    //
-    reader.onload = function(file) {
-
-        //
-        //  1.  Save the B64 file blob.
-        //
-        file_blob = base64_to_blob(file.target.result);
-
-        console.log("File saved in to memory.");
-
-    }
-
-    //
-    //  3.  Attach the selected file to the FileReader object which will
-    //      subsequently call .onload().
-    //
-    reader.readAsDataURL(data.target.files[0]);
-
-    //
-    //  4.  Save the file name.
+    //  1.  Whenever a new file is dragged into the application
+    //      re-initialize each update-related variable
     //
     file_name = data.target.files[0].name;
+    file_size = data.target.files[0].size;
+    file = data.target.files[0];
+
+    console.log('File read successfully');
+    console.log(file);
+
+    parts_left = Math.ceil(file_size / chunk_size);
+
+    start_time = new Date();
+
+    uploaded_yet = 0;
+
+    parts = {
+        Parts : []
+    };
 
     //
-    //  5.  Update the UI with the name of the file selected.
+    //  3.  Update the UI with the name of the file selected and
+    //      the total file size.
     //
     $("#file-info").text(file_name);
-
+    $("#file_size").text(file_size);
 }
 
 //
@@ -531,5 +998,25 @@ $(document).on('drop', function(event) {
     process_uploaded_file(files);
 
 });
+
+// 
+// This function checks if a chunk already exists in a chunk array
+//
+
+function check_if_chunk_exists(chunk,chunk_arr)
+{
+    //
+    //  1.  Filter the array for the desired chunk based on it start,end and partNumber
+    //
+    let filtered = chunk_arr.filter(function(value,index,array){
+        return (value['start']===chunk['start'] && value['end']===chunk['end'] && value['part_number']===chunk['part_number'])
+    })
+
+    //
+    //  2.  Return true if filtered array's length is more than 0
+    //
+    return filtered.length>0
+}
+
 
 </script>
