@@ -173,8 +173,7 @@ $("#upload").on("click", function(event) {
             
             return create_chunks(container);
 
-        })
-        .then(function(container) {
+        }).then(function(container) {
 
             return check_if_user_exists(container);
 
@@ -206,6 +205,7 @@ $("#upload").on("click", function(event) {
             abort_multipart_upload(container);
             
         })
+        
 });
 
 //
@@ -241,50 +241,50 @@ function prepare_the_data(container)
 //
 function create_chunks(container)
 {
-    return new Promise(function(resolve,reject){
-        //
-        //  1.  Check if file_size is defined.
-        //
-        if(file_size)
-        {
-            //
-            //  1.  Initialize part number and increment it on each for loop,
-            //  then assign to the chunk.
-            //
-            let part_num = 1;
-            console.log(file_size)
-            console.log(chunk_size)
-            //
-            //  2.  Create a for loop to initialize starting and ending points of chunks
-            //
-            for(let range_start = 0; range_start < file_size; range_start += chunk_size)
-            {   
-                //
-                //  1.  File will be read from range_start to end variable,
-                //      but at the end range_start+chunk_size might be more than
-                //      the actual file size, so I set the end variable to the
-                //      minimum(range_start+chunk_size,file_size).
-                //
-                let end = Math.min(range_start + chunk_size, file_size);
-                
-                console.log(range_start)
-                //
-                //  2.  Push the chunk info to the chunk_array object in container
-                //
-                container.chunk_array.push({start:range_start,end:end,part_number:part_num});
-                
-                //
-                //  3.  Increment the part number by one each loop
-                //
-                ++part_num;
+    return new Promise(function(resolve,reject) {
 
-            };
-            return resolve(container);
-        }
         if(!file_size)
         {
             return reject(new Error('File Not Defined'))
         }
+
+        console.info('create_chunks');
+
+        //
+        //  1.  Initialize part number and increment it on each for loop,
+        //  then assign to the chunk.
+        //
+        let part_num = 1;
+        
+        //
+        //  2.  Create a for loop to initialize starting and ending points of chunks
+        //
+        for(let range_start = 0; range_start < file_size; range_start += chunk_size)
+        {   
+            //
+            //  1.  File will be read from range_start to end variable,
+            //      but at the end range_start+chunk_size might be more than
+            //      the actual file size, so I set the end variable to the
+            //      minimum(range_start+chunk_size,file_size).
+            //
+            let end = Math.min(range_start + chunk_size, file_size);
+            
+            //
+            //  2.  Push the chunk info to the chunk_array object in container
+            //
+            container.chunk_array.push({start:range_start,end:end,part_number:part_num});
+            
+            //
+            //  3.  Increment the part number by one each loop
+            //
+            ++part_num;
+        };
+
+        //
+        //  ->  Move to the next chain.
+        //
+        return resolve(container);
+    
     });
 
 }
@@ -582,7 +582,7 @@ function upload_errors(container)
 //
 function complete_multipart_upload(container)
 {
-    return new Promise(function(resolve,reject){
+    return new Promise(function(resolve, reject){
 
         //
         //  1.  Create the S3 object key.
@@ -598,8 +598,8 @@ function complete_multipart_upload(container)
         //
         //  2.  Create the parameters to complete multipart upload.
         //
-        console.log(parts);
-        let doneParams = {
+        
+        let params = {
             Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}',
             Key: key,
             MultipartUpload: parts,
@@ -609,14 +609,14 @@ function complete_multipart_upload(container)
         //
         // 3. Call complete_multipart_upload function
         //
-        s3.completeMultipartUpload(doneParams, function(error, data) {
+        s3.completeMultipartUpload(params, function(error, data) {
 
             //
             //  1.  Check for internal Errors.
             //
             if(error)
             {
-                console.log(doneParams);
+                console.info(params);
                 return reject(error);
             }
 
@@ -656,7 +656,7 @@ function abort_multipart_upload(container)
     //
     //  2.  Create params to abort process, upload_id is gotten from global variable
     //
-    var params = {
+    let params = {
         Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}', 
         Key: key, 
         UploadId: container.upload_id
@@ -666,11 +666,17 @@ function abort_multipart_upload(container)
     //  3.  Call s3 function.
     //
     s3.abortMultipartUpload(params, function(err, data) {
-        if (err)
-        {   
-            console.log(err, err.stack);
+        
+        //
+        //  1.  Check for internal Errors.
+        //
+        if(error)
+        {
+            console.info(params);
+            return reject(error);
         }
-        if (data)
+
+        if(data)
         {
             console.log('Successfully cancelled the upload process.');   
         }
@@ -837,6 +843,7 @@ function upload_part(container,part_params,chunk)
         });
         });
 }
+
 //
 //  A function to refresh the UI everytime a new upload is made
 //
