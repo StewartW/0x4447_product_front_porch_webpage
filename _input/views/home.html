@@ -805,15 +805,15 @@ function upload_part(container, params, chunk)
                 //      PartNumber is given in the function parameters as well which
                 //      defines the order of parts.
                 //
-                parts['Parts'][part_params.PartNumber-1] = {
+                parts['Parts'][params.PartNumber-1] = {
                     ETag: data.ETag,
-                    PartNumber: Number(part_params.PartNumber)
+                    PartNumber: Number(params.PartNumber)
                 };
 
                 //
                 //  2.  Increase the uploaded_yet parameter by body size.
                 //
-                uploaded_yet += part_params.Body.size;
+                uploaded_yet += params.Body.size;
 
                 //
                 //  3.
