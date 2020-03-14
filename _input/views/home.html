@@ -800,7 +800,7 @@ function upload_part(container, part_params,chunk)
         //
         //  3.  Call upload_part function with s3
         //
-        let request = s3.uploadPart(part_params, function(error, data) {
+        let request = s3.uploadPart(params, function(error, data) {
 
             //
             //  1.  If error is returned from the function,
