@@ -773,32 +773,12 @@ function upload_chunk_array(container, chunk_array)
 //  succeeds. This function will be called for individual parts
 //  iteratively.    
 //
-function upload_part(container, part_params,chunk)
+function upload_part(container, params, chunk)
 {      
     return new Promise(function(resolve,reject) {
 
         //
-        //  1.  Create the S3 object key.
-        // 
-        let key = container.email_to
-                + '/'
-                + container.email_from
-                + '/'
-                + container.random
-                + '-'
-                + file_name;
-
-        //
-        //  2.  Create parameters for the s3.upload_part function
-        //
-        let params = {
-            Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}',
-            Key: key,
-            Upload_id: container.upload_id
-        };
-
-        //
-        //  3.  Call upload_part function with s3
+        //  1.  Call upload_part function with s3
         //
         let request = s3.uploadPart(params, function(error, data) {
 
