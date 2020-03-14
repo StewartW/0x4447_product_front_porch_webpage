@@ -846,6 +846,15 @@ function upload_part(container, params, chunk)
                 return resolve(true);
             }
         });
+    
+        request.on('httpUploadProgress', function(progress) {
+        
+            let raw_percentage = (((progress.total - progress.loaded) / progress.total * 100) - 100) * -1
+
+            console.log(raw_percentage)
+        
+        });
+
     });
 }
 
