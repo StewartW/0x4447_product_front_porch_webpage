@@ -74,7 +74,7 @@
 //  Variables used by S3.
 //
 let file_name = '';
-let file_blob = '';
+let file = {};
 
 //
 //  Initialize file_size, also set the maxUploadTries.
@@ -112,7 +112,7 @@ $("input:file").change(function(data) {
     //  1.  Call the function that reads the selected file, and pass
     //      also the context of this function to it.
     //
-    process_uploaded_file(data);
+    process_selected_file(data);
 
 });
 
@@ -909,9 +909,9 @@ function refresh_ui(data)
 //  Handle the processing of a file that was draged onto the web page and 
 //  dropped.
 //
-function process_uploaded_file(data)
+function process_selected_file(data)
 {
-    console.info(' - process_uploaded_file');
+    console.info('process_selected_file');
 
     //
     //  1.  Whenever a new file is dragged into the application
@@ -1008,7 +1008,7 @@ $(document).on('drop', function(event) {
     //  1.  Call the function that reads the selected file, and pass
     //      also the context of this function to it.
     //
-    process_uploaded_file(files);
+    process_selected_file(files);
 
 });
 
