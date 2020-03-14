@@ -675,7 +675,7 @@ function abort_multipart_upload(container)
     //
     //  3.  Call s3 function.
     //
-    s3.abortMultipartUpload(params, function(err, data) {
+    s3.abortMultipartUpload(params, function(error, data) {
         
         //
         //  1.  Check for internal Errors.
