@@ -800,7 +800,11 @@ function upload_part(container, params, chunk)
                 return resolve(chunk);
             }
 
-            if(data)
+            //
+            //  2.  Check if the Etag is present. Becasue if it is not, then
+            //      there was an error.
+            //
+            if(data.ETag)
             {   
                 //
                 //  1.  Push information of the uploaded part to parts array,
