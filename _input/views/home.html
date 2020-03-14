@@ -171,11 +171,11 @@ $("#upload").on("click", function(event) {
     prepare_the_data(container)
         .then(function(container) {
             
-            return create_chunks(container);
+            return check_if_user_exists(container);
 
         }).then(function(container) {
 
-            return check_if_user_exists(container);
+            return create_chunks(container);
 
         }).then(function(container) {
 
@@ -233,60 +233,6 @@ function prepare_the_data(container)
         return resolve(container);
 
     });
-}
-
-//
-//  A function to create chunks array, which is an array made of starting and ending
-//  bytes of individual chunks.
-//
-function create_chunks(container)
-{
-    return new Promise(function(resolve,reject) {
-
-        if(!file_size)
-        {
-            return reject(new Error('File Not Defined'))
-        }
-
-        console.info('create_chunks');
-
-        //
-        //  1.  Initialize part number and increment it on each for loop,
-        //  then assign to the chunk.
-        //
-        let part_num = 1;
-        
-        //
-        //  2.  Create a for loop to initialize starting and ending points of chunks
-        //
-        for(let range_start = 0; range_start < file_size; range_start += chunk_size)
-        {   
-            //
-            //  1.  File will be read from range_start to end variable,
-            //      but at the end range_start+chunk_size might be more than
-            //      the actual file size, so I set the end variable to the
-            //      minimum(range_start+chunk_size,file_size).
-            //
-            let end = Math.min(range_start + chunk_size, file_size);
-            
-            //
-            //  2.  Push the chunk info to the chunk_array object in container
-            //
-            container.chunk_array.push({start:range_start,end:end,part_number:part_num});
-            
-            //
-            //  3.  Increment the part number by one each loop
-            //
-            ++part_num;
-        };
-
-        //
-        //  ->  Move to the next chain.
-        //
-        return resolve(container);
-    
-    });
-
 }
 
 //
@@ -390,6 +336,63 @@ function check_if_user_exists(container)
 }
 
 //
+//  A function to create chunks array, which is an array made of starting and ending
+//  bytes of individual chunks.
+//
+function create_chunks(container)
+{
+    return new Promise(function(resolve,reject) {
+
+        if(!file_size)
+        {
+            return reject(new Error('File Not Defined'))
+        }
+
+        console.info('create_chunks');
+
+        //
+        //  1.  Initialize part number and increment it on each for loop,
+        //  then assign to the chunk.
+        //
+        let part_num = 1;
+        
+        //
+        //  2.  Create a for loop to initialize starting and ending points of chunks
+        //
+        for(let range_start = 0; range_start < file_size; range_start += chunk_size)
+        {   
+            //
+            //  1.  File will be read from range_start to end variable,
+            //      but at the end range_start+chunk_size might be more than
+            //      the actual file size, so I set the end variable to the
+            //      minimum(range_start+chunk_size,file_size).
+            //
+            let end = Math.min(range_start + chunk_size, file_size);
+            
+            //
+            //  2.  Push the chunk info to the chunk_array object in container
+            //
+            container.chunk_array.push({
+                start: range_start,
+                end: end,
+                part_number: part_num
+            });
+            
+            //
+            //  3.  Increment the part number by one each loop
+            //
+            ++part_num;
+        };
+
+        //
+        //  ->  Move to the next chain.
+        //
+        return resolve(container);
+    
+    });
+}
+
+//
 //  Tell AWS that we want to start a Multipart upload process, and we want
 //  back the ID so we can send all the small chunks and AWS will know how to
 //  put them back together.
@@ -436,20 +439,15 @@ function create_upload(container)
         }
 
         //
-        //  2.  If the request is successfull and data came through,
-        //      resolve with the key from the container and upload_id
-        //      key is returned for the simplicity, rather than the container.
+        //  2.  Save the ID to reference with other calles to S3
         //
-        if(data)
-        {
-            console.info('The upload ID for the process is,' + data['UploadId']);
-            container.upload_id = data['UploadId'];
-            //
-            //  1.  Set global upload_id variable to access it from abort_multipart_upload function
-            //
-            upload_id = data['UploadId'];
-            return resolve(container)
-        }
+        container.upload_id = data['UploadId'];
+        
+        //
+        //  ->  Move to the next promise.
+        //
+        return resolve(container)
+        
     });
 
 })};
