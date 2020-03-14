@@ -561,7 +561,7 @@ function upload_errors(container)
             //
             //  1.  Upload failed chunks again
             //
-            let failed_ones = await upload_chunk_array(container,container.failed_chunk_array);
+            let failed_ones = await upload_chunk_array(container, container.failed_chunk_array);
             
             //
             //  2.  Initialize failed_chunk_array again so that we don't just keep pushing 
@@ -814,7 +814,6 @@ function upload_part(container, part_params,chunk)
                 //
                 console.error(params);
                 return resolve(chunk);
-                
             }
 
             if(data)
