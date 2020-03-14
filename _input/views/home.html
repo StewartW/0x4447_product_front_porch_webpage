@@ -88,7 +88,6 @@ let maxUploadTries = 10;
 //  upload_part requests. Also, initialize other parameters
 //
 let upload_id = null;
-let uploaded_yet = 0;
 let chunk_size = 5 * 1024 * 1024; // Minimum 10MB per chunk
 let start_time = null;
 let parts = null;  // Will be initialized as an array to keep track of uploaded parts
@@ -819,95 +818,90 @@ function upload_part(container, params, chunk)
                 };
 
                 //
-                //  2.  Increase the uploaded_yet parameter by body size.
-                //
-                uploaded_yet += params.Body.size;
-
-                //
-                //  3.
-                //
-                let ui_data = {
-                    uploaded_yet: uploaded_yet
-                };
-
-                //
-                //  4.  Refresh the UI with new information
-                //
-                refresh_ui(ui_data);
-
-                //
                 //  5.  Decrease the number of parts left
                 //
                 --parts_left;
 
-                //
-                //
-                //
-                return resolve(true);
             }
         });
     
         request.on('httpUploadProgress', function(progress) {
-        
+
+            //
+            //  1.  Calculate the percentage by making sure that
+            //
+            //      - the value is from 0 to 100, and not the other way around.
+            //      - the result is a positive number.
+            //
             let raw_percentage = (((progress.total - progress.loaded) / progress.total * 100) - 100) * -1
 
-            console.log(raw_percentage)
-        
+            //
+            //  2.  Convert the double in to an integer.
+            //
+            let percentage = Math.floor(raw_percentage)
+
+            //
+            //  3.  Get the time stamp used to calculate the upload speed, so
+            //      with this we know how much time passed from the point
+            //      we started.
+            //
+            end_time = new Date().getTime();
+
+            //
+            //  4.  Calculate how much time passed in seconds.
+            //
+            let duration = (end_time - start_time) / 1000
+
+            //
+            //  5.  Convert Bytes in to Bits.
+            //
+            bits = progress.loaded * 8;
+
+            //
+            //  6.  Get the upload speed.
+            //
+            let speed_bps = Math.round((bits / duration) / 8);
+
+            //
+            //  7.  Calculate the time left till the upload is done.
+            //
+            let time_left = Math.round((progress.total - progress.loaded) / speed_bps);
+
+            //
+            //  -> Update the UI upload stats.
+            //
+            ui_data_sent.text(Number(progress.loaded).toLocaleString());
+            ui_file_size.text(Number(progress.total).toLocaleString());
+            ui_percentage.text(percentage);
+            ui_speed.text(Number(speed_bps).toLocaleString());
+            ui_time_left.text(time_left);
+
+        });
+
+        //
+        //  5.  React on errors.
+        //
+        request.on('error', function(error) {
+
+            console.error(error);
+
+            return reject(error);
+
+        });
+
+        //
+        //  6.  Wait until the upload process is done.
+        //
+        request.send(function(response) {
+
+            //
+            //  ->  Move to the next promise.
+            //
+            return resolve(true);
+
         });
 
     });
-}
-
-//
-//  A function to refresh the UI everytime a new upload is made
-//
-function refresh_ui(data)
-{
-    console.log(' - refresh_ui');
-
-    //
-    //  1.  If uploaded_yet parameter is given inside function parameter data.
-    //
-    if(data.uploaded_yet)
-    {
-        //
-        //  1.  Calculate the percentage of upload, by dividing the uploaded
-        //      size to total size.
-        //
-        let percentage = parseFloat(uploaded_yet)*100/(parseFloat(file_size));
-
-        //
-        //  2.  Round the result to 2 floating points and show it.
-        //
-        percentage = percentage.toFixed(2);
-
-        //
-        //  3.  Calculate the time passed, then get the speed by dividing
-        //      uploaded size by the time passed
-        //
-        let curr_time = new Date(); // convert to seconds
-        let time_passed = parseFloat(curr_time / 1000) - parseFloat(start_time / 1000);
-        let speed = uploaded_yet / time_passed;
-
-        //
-        //  4.  
-        //
-        speed = speed.toFixed(2);
-
-        //
-        //  5.  Calculate the time left by dividing the total file_size by
-        //      speed of the upload.
-        //
-        let time_left = Math.round((file_size-uploaded_yet) / speed);
-
-        //
-        //  6.  Set and show the calculated information.
-        //
-        $('#percentage').text(percentage);
-        $('#speed').text(speed);
-        $('#data_sent').text(uploaded_yet);
-        $('#time_left').text(time_left);
-    }
 }
 
 //   _    _   ______   _        _____    ______   _____     _____
@@ -937,8 +931,6 @@ function process_selected_file(data)
     parts_left = Math.ceil(file_size / chunk_size);
 
     start_time = new Date();
-
-    uploaded_yet = 0;
 
     parts = {
         Parts : []
