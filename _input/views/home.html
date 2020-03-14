@@ -478,8 +478,11 @@ function start_multipart_upload(container)
         //
         let promise_array = []
 
-        console.log(container.chunk_array)
-        container.chunk_array.forEach(function(chunk){
+        //
+        //
+        //
+        container.chunk_array.forEach(function(chunk) {
+
             //
             //  1.  Create part parameters
             //
@@ -490,38 +493,45 @@ function start_multipart_upload(container)
                 PartNumber: chunk.part_number,
                 UploadId: container.upload_id
             };
-            console.log(part_params);
-            console.log('Started uploading part from ' + String(chunk.start) + ' to ' + String(chunk.start + chunk_size));
 
             //
-            // 2. Upload the part with tryNumber initialized at 0h
+            //  2. Upload the part with tryNumber initialized at 0h
             //
             let promise = upload_part(container, part_params, chunk);
 
             //
-            // 3. Add the promise to promise_array
+            //  3. Add the promise to promise_array
             //
             promise_array.push(promise);
+
         });
         
-       //
-        //  3.  Resolve this promise when every part upload has returned,
-        //  What is returned from this promises will be only the parts that are failed 
-        //  to upload.
         //
-        console.log('pushed all the promises')
-        Promise.all(promise_array).then(function(failed_ones){
-            //
-            //  1.  Remove successful ones and only take failed uploads
-            //
-            failed_ones.forEach(function(element){
-                if(element!=true)
-                {
-                    container.failed_chunk_array.push(element);
-                }
-            })
-            return resolve(container)
-        });
+        //  3.  Resolve this promise when every part upload has returned,
+        //      What is returned from this promises will be only the parts that are failed 
+        //      to upload.
+        //
+        Promise.all(promise_array)
+            .then(function(failed_ones) {
+
+                //
+                //  1.  Remove successful ones and only take failed uploads
+                //
+                failed_ones.forEach(function(element) {
+
+                    if(element != true)
+                    {
+                        container.failed_chunk_array.push(element);
+                    }
+
+                })
+
+                //
+                //
+                //
+                return resolve(container);
+
+            });
     });
 }
 
@@ -530,11 +540,10 @@ function start_multipart_upload(container)
 //  This will be a recursive function which would just call itself again till 
 //  failed_chunk_array length is zero.
 //
-
-
 function upload_errors(container)
 {
-    return new Promise(async function(resolve,reject){
+    return new Promise(async function(resolve,reject) {
+
         //
         //  1.  Create the S3 object key.
         //
@@ -546,7 +555,10 @@ function upload_errors(container)
                 + '-'
                 + file_name;
 
-        while(container.failed_chunk_array.length>0)
+        //
+        //
+        //
+        while(container.failed_chunk_array.length > 0)
         {
             //
             //  1.  Upload failed chunks again
@@ -562,16 +574,19 @@ function upload_errors(container)
             //
             //  3.  Push only those that are failed again.
             //
-            failed_ones.forEach(function(element){
-                if(element!=true)
+            failed_ones.forEach(function(element) {
+
+                if(element != true)
                 {
                     container.failed_chunk_array.push(element);
                 }
-            })
 
-            
+            })
         }
-        console.log('Uploaded all the parts successfully');
+        
+        //
+        //
+        //
         return resolve(container)
 
     });
@@ -598,7 +613,6 @@ function complete_multipart_upload(container)
         //
         //  2.  Create the parameters to complete multipart upload.
         //
-        
         let params = {
             Bucket: '{{S3_BUCKET_FRONT_PORCH_UPLOADS}}',
             Key: key,
@@ -627,8 +641,6 @@ function complete_multipart_upload(container)
             if (data)
             {
                 let delta = (new Date() - start_time) / 1000;
-                console.log('Completed upload in', delta, 'seconds');
-                console.log('Final upload data:', data);
 
                 resolve(container)
             }
@@ -675,12 +687,10 @@ function abort_multipart_upload(container)
             console.info(params);
             return reject(error);
         }
-
-        if(data)
-        {
-            console.log('Successfully cancelled the upload process.');   
-        }
-});
+    
+        console.log('Successfully cancelled the upload process.');   
+        
+    });
 }
 
 //	 ______  _    _  _   _   _____  _______  _____  ____   _   _   _____
@@ -695,9 +705,10 @@ function abort_multipart_upload(container)
 //  A Function to be called again and again while uploading chunks,
 //  takes the chunks array as a parameter. 
 //
-function upload_chunk_array(container,chunk_array)
+function upload_chunk_array(container, chunk_array)
 {
-    return new Promise(async function(resolve,reject){
+    return new Promise(async function(resolve,reject) {
+
         //
         //  1.  Create the S3 object key.
         //
@@ -715,8 +726,11 @@ function upload_chunk_array(container,chunk_array)
         //
         let promise_array = []
 
-        console.log(chunk_array)
-        chunk_array.forEach(function(chunk){
+        //
+        //
+        //
+        chunk_array.forEach(function(chunk) {
+            
             //
             //  1.  Create part parameters
             //
@@ -727,9 +741,7 @@ function upload_chunk_array(container,chunk_array)
                 PartNumber: chunk.part_number,
                 UploadId: container.upload_id
             };
-            console.log(part_params);
-            console.log('Started uploading part from ' + String(chunk.start) + ' to ' + String(chunk.start + chunk_size));
-
+            
             //
             // 2. Upload the part with tryNumber initialized at 0h
             //
@@ -739,6 +751,7 @@ function upload_chunk_array(container,chunk_array)
             // 3. Add the promise to promise_array
             //
             promise_array.push(promise);
+
         });
         
         //
@@ -748,7 +761,11 @@ function upload_chunk_array(container,chunk_array)
         //
         let failed_ones = await Promise.all(promise_array);
 
-        return resolve(failed_ones)
+        //
+        //
+        //
+        return resolve(failed_ones);
+
     });
 }
 
@@ -758,13 +775,13 @@ function upload_chunk_array(container,chunk_array)
 //  succeeds. This function will be called for individual parts
 //  iteratively.    
 //
-function upload_part(container,part_params,chunk)
+function upload_part(container, part_params,chunk)
 {      
-    return new Promise(function(resolve,reject){
+    return new Promise(function(resolve,reject) {
+
         //
         //  1.  Create the S3 object key.
-        //
-        console.log(parts)
+        // 
         let key = container.email_to
                 + '/'
                 + container.email_from
@@ -785,8 +802,8 @@ function upload_part(container,part_params,chunk)
         //
         //  3.  Call upload_part function with s3
         //
-
         let request = s3.uploadPart(part_params, function(error, data) {
+
             //
             //  1.  If error is returned from the function,
             //      Recursively, call the function again till we reach the maximum
@@ -794,17 +811,16 @@ function upload_part(container,part_params,chunk)
             //
             if(error)
             {
-                console.log('Failed uploading part: #', part_params.PartNumber);
                 //
-                //  2.  Return the part along with its status
+                //  1.  Return the part along with its status
                 //
+                console.error(params);
                 return resolve(chunk);
                 
             }
+
             if(data)
             {   
-                console.log('Uploaded part: #',part_params.PartNumber);
-
                 //
                 //  1.  Push information of the uploaded part to parts array,
                 //      ETag is returned after the process within data parameter,
@@ -822,26 +838,30 @@ function upload_part(container,part_params,chunk)
                 //
                 uploaded_yet += part_params.Body.size;
 
+                //
+                //  3.
+                //
                 let ui_data = {
                     uploaded_yet: uploaded_yet
                 };
 
-                console.log("Successfully uploaded", this.request.params.PartNumber);
-
                 //
-                //  3.  Refresh the UI with new information
+                //  4.  Refresh the UI with new information
                 //
                 refresh_ui(ui_data);
 
                 //
-                //  4.  Decrease the number of parts left
+                //  5.  Decrease the number of parts left
                 //
                 --parts_left;
 
-                return resolve(true)
+                //
+                //
+                //
+                return resolve(true);
             }
         });
-        });
+    });
 }
 
 //
@@ -873,22 +893,24 @@ function refresh_ui(data)
         let time_passed = parseFloat(curr_time / 1000) - parseFloat(start_time / 1000);
         let speed = uploaded_yet / time_passed;
 
+        //
+        //  4.  
+        //
         speed = speed.toFixed(2);
 
         //
-        //  4.  Calculate the time left by dividing the total file_size by
+        //  5.  Calculate the time left by dividing the total file_size by
         //      speed of the upload.
         //
         let time_left = Math.round((file_size-uploaded_yet) / speed);
 
         //
-        //  5.  Set and show the calculated information.
+        //  6.  Set and show the calculated information.
         //
         $('#percentage').text(percentage);
         $('#speed').text(speed);
         $('#data_sent').text(uploaded_yet);
         $('#time_left').text(time_left);
-
     }
 }
 
@@ -901,7 +923,8 @@ function refresh_ui(data)
 //
 
 //
-//  Handle the processing of a file that was drug onto the web page and dropped.
+//  Handle the processing of a file that was draged onto the web page and 
+//  dropped.
 //
 function process_uploaded_file(data)
 {
@@ -912,9 +935,6 @@ function process_uploaded_file(data)
     file_name = data.target.files[0].name;
     file_size = data.target.files[0].size;
     file = data.target.files[0];
-
-    console.log('File read successfully');
-    console.log(file);
 
     parts_left = Math.ceil(file_size / chunk_size);
 
@@ -1006,25 +1026,5 @@ $(document).on('drop', function(event) {
     process_uploaded_file(files);
 
 });
-
-// 
-// This function checks if a chunk already exists in a chunk array
-//
-
-function check_if_chunk_exists(chunk,chunk_arr)
-{
-    //
-    //  1.  Filter the array for the desired chunk based on it start,end and partNumber
-    //
-    let filtered = chunk_arr.filter(function(value,index,array){
-        return (value['start']===chunk['start'] && value['end']===chunk['end'] && value['part_number']===chunk['part_number'])
-    })
-
-    //
-    //  2.  Return true if filtered array's length is more than 0
-    //
-    return filtered.length>0
-}
-
 
 </script>
