@@ -179,7 +179,7 @@ $("#upload").on("click", function(event) {
 
         }).then(function(container) {
 
-            return create_upload(container);
+            return create_multipart_upload(container);
 
         }).then(function(container) {
 
@@ -397,11 +397,11 @@ function create_chunks(container)
 //  back the ID so we can send all the small chunks and AWS will know how to
 //  put them back together.
 //
-function create_upload(container)
+function create_multipart_upload(container)
 {
     return new Promise(function(resolve, reject) {
 
-    console.info('create_upload');
+    console.info('create_multipart_upload');
 
     //
     //  1.  Create the S3 object key.
@@ -636,7 +636,7 @@ function complete_multipart_upload(container)
             //  2.  If the request is successfull and data came through,
             //      calculate the total time taken in uploading process.
             //
-            if (data)
+            if(data)
             {
                 let delta = (new Date() - start_time) / 1000;
 
@@ -706,6 +706,8 @@ function abort_multipart_upload(container)
 function upload_chunk_array(container, chunk_array)
 {
     return new Promise(async function(resolve,reject) {
+
+        console.log(' - upload_chunk_array');
 
         //
         //  1.  Create the S3 object key.
@@ -777,6 +779,8 @@ function upload_part(container, params, chunk)
 {      
     return new Promise(function(resolve,reject) {
 
+        console.info(' - upload_part: ' + params.PartNumber);
+
         //
         //  1.  Call upload_part function with s3
         //
@@ -846,6 +850,8 @@ function upload_part(container, params, chunk)
 //
 function refresh_ui(data)
 {
+    console.log(' - refresh_ui');
+
     //
     //  1.  If uploaded_yet parameter is given inside function parameter data.
     //
@@ -905,6 +911,8 @@ function refresh_ui(data)
 //
 function process_uploaded_file(data)
 {
+    console.info(' - process_uploaded_file');
+
     //
     //  1.  Whenever a new file is dragged into the application
     //      re-initialize each update-related variable
